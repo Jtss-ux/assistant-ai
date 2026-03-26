@@ -11,3 +11,8 @@ server*.log
 **/__pycache__/
 Resources/
 mcp-on-cloudrun/
+*.exe
+*.zip
+.bin/
+render_cli_install/
+render_cli_final_tmp/

@@ -8,19 +8,21 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-glow: rgba(99, 102, 241, 0.3);
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary: #818cf8;
+            --primary-glow: rgba(129, 140, 248, 0.4);
+            --bg: #030712;
+            --card-bg: rgba(17, 24, 39, 0.6);
+            --border: rgba(255, 255, 255, 0.08);
             --text: #f8fafc;
             --text-muted: #94a3b8;
-            --border: rgba(255, 255, 255, 0.1);
+            --accent: #c084fc;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            cursor: default;
         }
 
         body {
@@ -31,97 +33,144 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            background-image: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 100%);
+            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #030712 100%);
+            animation: breathe 15s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { background-size: 100% 100%; }
+            50% { background-size: 110% 110%; }
         }
 
         header {
-            padding: 1.5rem 2rem;
+            padding: 1.25rem 2.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border);
-            backdrop-blur: 10px;
+            backdrop-filter: blur(12px);
+            background: rgba(3, 7, 18, 0.4);
+            z-index: 10;
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 600;
-            background: linear-gradient(to right, #818cf8, #c084fc);
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #a5b4fc, #e879f9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--primary-glow);
         }
 
         .status {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
+            gap: 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 500;
             color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             background-color: #22c55e;
             border-radius: 50%;
-            box-shadow: 0 0 8px #22c55e;
+            box-shadow: 0 0 12px #22c55e;
+            animation: pulse 2.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); box-shadow: 0 0 20px #22c55e; }
+            100% { opacity: 0.4; transform: scale(0.9); }
         }
 
         #chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 2rem;
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-            scrollbar-width: thin;
-            scrollbar-color: var(--border) transparent;
+            gap: 2rem;
+            scroll-behavior: smooth;
         }
 
+        #chat-container::-webkit-scrollbar { width: 4px; }
+        #chat-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
         .message {
-            max-width: 80%;
-            padding: 1rem 1.5rem;
-            border-radius: 1.5rem;
-            line-height: 1.6;
-            animation: fadeIn 0.3s ease-out;
+            max-width: 85%;
+            padding: 1.2rem 1.8rem;
+            border-radius: 1.8rem;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+            animation: slideIn 0.5s cubic-bezier(0, 0, 0.2, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .message.user {
             align-self: flex-end;
-            background-color: var(--primary);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
             color: white;
-            border-bottom-right-radius: 0.25rem;
-            box-shadow: 0 4px 15px var(--primary-glow);
+            border-bottom-right-radius: 0.4rem;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
         }
 
         .message.bot {
             align-self: flex-start;
-            background-color: var(--card-bg);
+            background: var(--card-bg);
             border: 1px solid var(--border);
-            border-bottom-left-radius: 0.25rem;
-            backdrop-filter: blur(10px);
+            border-bottom-left-radius: 0.4rem;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        .message p { margin-bottom: 0.5rem; }
-        .message ul, .message ol { margin-left: 1.5rem; margin-bottom: 0.5rem; }
-        .message code { background: rgba(0,0,0,0.3); padding: 0.2rem 0.4rem; border-radius: 0.25rem; }
+        .message p { margin-bottom: 0.75rem; }
+        .message p:last-child { margin-bottom: 0; }
+        .message ul, .message ol { margin-left: 1.5rem; margin-bottom: 0.75rem; }
+        .message code { 
+            background: rgba(0,0,0,0.4); 
+            padding: 0.25rem 0.5rem; 
+            border-radius: 0.5rem; 
+            font-family: inherit;
+            color: #a5b4fc;
+        }
 
-        input-area {
-            padding: 2rem;
-            background: linear-gradient(to top, var(--bg), transparent);
+        .input-area {
+            padding: 1.5rem 2.5rem 3rem;
+            background: linear-gradient(to top, var(--bg) 80%, transparent);
+            z-index: 10;
         }
 
         .input-wrapper {
-            max-width: 900px;
+            max-width: 800px;
             margin: 0 auto;
             position: relative;
-            background: var(--card-bg);
+            background: rgba(31, 41, 55, 0.5);
             border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 0.5rem;
+            border-radius: 1.5rem;
+            padding: 0.6rem;
             display: flex;
-            gap: 0.5rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            gap: 0.6rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow);
         }
 
         input {
@@ -129,43 +178,62 @@
             background: transparent;
             border: none;
             color: var(--text);
-            padding: 0.75rem 1rem;
+            padding: 0.8rem 1.2rem;
             font-family: inherit;
             font-size: 1rem;
             outline: none;
+            cursor: text;
         }
 
         button {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
+            padding: 0.8rem 1.8rem;
+            border-radius: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px var(--primary-glow);
+        button:hover:not(:disabled) {
+            transform: scale(1.05);
+            background: #4f46e5;
+            box-shadow: 0 0 20px var(--primary-glow);
         }
 
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        button:active:not(:disabled) {
+            transform: scale(0.95);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .dots {
+            display: flex;
+            gap: 4px;
+            padding: 0.5rem 0;
         }
 
-        .typing {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: jump 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes jump {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        #typing-indicator {
             display: none;
+            margin-bottom: 1.5rem;
         }
     </style>
 </head>
@@ -174,7 +242,7 @@
         <div class="logo">Assistant AI .</div>
         <div class="status">
             <div class="status-dot"></div>
-            Core Orchestrator Active
+            Orchestrator Online
         </div>
     </header>
 
@@ -191,12 +259,21 @@
         </div>
     </div>
 
-    <div id="typing-indicator" class="typing" style="padding: 0 2rem;">Orchestrating agents...</div>
+    <div id="typing-indicator" style="padding: 0 4rem;">
+        <div class="dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
 
     <div class="input-area">
         <div class="input-wrapper">
-            <input type="text" id="user-input" placeholder="Ask anything..." autocomplete="off">
-            <button id="send-btn">Send</button>
+            <input type="text" id="user-input" placeholder="Type your request..." autocomplete="off">
+            <button id="send-btn">
+                <span>Send</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
         </div>
     </div>
 
