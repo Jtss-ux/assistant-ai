@@ -3,7 +3,12 @@ import sqlite3
 from typing import List, Optional
 from pydantic import BaseModel
 
+# --- CONFIGURATION ---
 DB_PATH = os.environ.get("DATABASE_PATH", "assistant.db")
+
+# NOTE: On platforms like Render or Cloud Run, the local filesystem is ephemeral.
+# To keep your data across restarts, you must mount a Persistent Disk
+# and set DATABASE_PATH to a path on that disk (e.g., /app/data/assistant.db).
 
 class Task(BaseModel):
     id: Optional[int] = None
@@ -18,6 +23,11 @@ class Note(BaseModel):
     timestamp: str
 
 def init_db():
+    """Initializes the SQLite database. Ensures the parent directory exists."""
+    db_dir = os.path.dirname(os.path.abspath(DB_PATH))
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir, exist_ok=True)
+        
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""

@@ -103,6 +103,15 @@ Open http://localhost:8080 to access the **Assistant AI Web UI**.
 
 ---
 
+## 🔒 Security & Networking (Render)
+
+If you are using an external database or API that requires whitelisting, please add the following **Render Outbound IP Ranges**:
+
+- **Range 1**: `74.220.52.0/24`
+- **Range 2**: `74.220.60.0/24`
+
+---
+
 ## 💡 Example Queries
 
 | Intent | Sample Query |
@@ -114,4 +123,4 @@ Open http://localhost:8080 to access the **Assistant AI Web UI**.
 | **Resilience** | (Auto-switches to Local Mode on API failure) |
 
 ---
-**Status**: 🚀 Published to GitHub & Ready for Submission.
+**Status**: 🏁 **Final Submission Complete** · Published to GitHub & Ready for Review.
