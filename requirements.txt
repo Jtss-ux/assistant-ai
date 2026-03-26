@@ -1,0 +1,10 @@
+google-adk>=1.0.0
+google-cloud-aiplatform
+google-genai
+google-auth
+google-auth-httplib2
+fastapi
+uvicorn
+python-dotenv
+httpx
+mcp
