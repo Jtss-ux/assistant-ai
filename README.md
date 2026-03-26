@@ -1,126 +1,85 @@
-# Zoo Tour Guide AI Agent
-### Gen AI Academy APAC Edition — Track 1: Build and Deploy AI Agents
+# Assistant AI 🧭
+### Unified Multi-Agent Personal & Career Platform
+**Gen AI Academy APAC Edition — Track 1: Build and Deploy AI Agents**
 
 **Author:** Joseph Thomas Stalin · josephst2007@gmail.com  
-**Lab:** GSP532 — Build a Smart Cloud Application with Vibe Coding and MCP  
-**Score:** ✅ 100/100 (all checkpoints passed)
+**Track:** Track 1 — Build and Deploy AI Agents with ADK & Cloud Run
 
 ---
 
-## 🦒 What Is This?
+## 🦒 Overview
 
-The **Zoo Tour Guide** is a production-ready AI agent built with the **Google Agent Development Kit (ADK)** and **Gemini**, deployed as a containerised service on **Google Cloud Run**. It answers visitor questions about Cloud Creek Zoo's animals by combining:
+**Assistant AI** is a production-ready multi-agent system built with the **Google Agent Development Kit (ADK)**, **Gemini**, and **FastMCP**. It seamlessly orchestrates personal productivity (tasks/schedules) and professional growth (CareerPilot guidance) into a single, unified interface.
 
-- 🔌 **Zoo MCP Server** — a custom FastMCP server deployed on Cloud Run that exposes real-time zoo animal data
-- ✨ **Gemini** (via Vertex AI) — the LLM backbone for natural language understanding and response generation
-- ☁️ **Cloud Run** — serverless, scalable hosting for both the MCP server and the ADK agent
+### Key Features
+- 🤖 **Multi-Agent Orchestration** — A central `root_agent` that skillfully delegates to **Task**, **Schedule**, and **Career** specialists.
+- 💾 **Persistent Storage** — SQLite-backed task tracking and note management.
+- 📅 **Real-time Scheduling** — Integrated **FastMCP** server for calendar management and system tools.
+- 🛡️ **Offline Resilience (Emergency Mode)** — A deterministic fallback engine and local knowledge base ensure the assistant stays active even during API outages.
+- ✨ **Premium Web UI** — A stunning, dark-mode interface built with FastAPI and CSS.
 
 ---
 
 ## 🏗️ Architecture
 
+```mermaid
+graph TD
+    User["User (HTTP/UI)"] --> Orchestrator["root_agent (Orchestrator)"]
+    Orchestrator --> TaskAgent["task_agent (Task Specialist)"]
+    Orchestrator --> InfoAgent["info_agent (Knowledge Specialist)"]
+    Orchestrator --> ScheduleAgent["schedule_agent (Schedule Specialist)"]
+    Orchestrator --> CareerAgent["career_agent (Career Strategist)"]
+    
+    TaskAgent --> SQLite["SQLite Database (Tasks)"]
+    InfoAgent --> SQLiteDB["SQLite Database (Notes)"]
+    ScheduleAgent --> MCP["FastMCP Server (Calendar Tools)"]
+    CareerAgent --> CareerTools["Career Guidance Tools (Skills, Resume, etc.)"]
+    
+    Orchestrator -.-> Fallback["Deterministic Fallback Engine (Local Mode)"]
+    Fallback --> SQLite
+    Fallback --> StaticData["Static Knowledge Base (Offline Wisdom)"]
 ```
-User Query
-    │
-    ▼
-Cloud Run ADK Agent  ──────►  Gemini (Vertex AI)
-    │                              │
-    ▼                              │
-MCP Toolset  ◄─────────────────────┘
-    │
-    ▼
-MCP Server (Cloud Run)
-    │
-    ▼
-Zoo Animal Database
-```
-
-**Services deployed:**
-| Service | Cloud Run Name | Description |
-|---|---|---|
-| MCP Server | `coding-zoo-mcp-server` | Zoo data API via FastMCP protocol |
-| ADK Agent | `coding-zoo-tour-guide` | Tour guide with web UI (`--with_ui`) |
 
 ---
 
-## 🚀 Local Setup
+## 🚀 Quick Start
 
-### Prerequisites
-
+### 1. Prerequisites
 - Python 3.11+
-- `gcloud` CLI authenticated
-- Vertex AI API enabled
+- Google Cloud Project with Vertex AI enabled
+- `GOOGLE_API_KEY` for Gemini access
 
-### Install
-
+### 2. Install
 ```bash
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Configure Environment
-
+### 3. Run Locally
 ```bash
-cd zoo_guide_agent
-cat <<EOF > .env
-MODEL="gemini-1.5-flash-001"
-MCP_SERVER_URL="https://<your-mcp-server>.run.app/mcp/"
-GOOGLE_GENAI_USE_VERTEXAI=1
-GOOGLE_CLOUD_PROJECT=<your-project-id>
-GOOGLE_CLOUD_LOCATION=us-central1
-EOF
+# Start the unified assistant server
+python main.py
 ```
-
-### Run Locally
-
-```bash
-cd ~
-adk web
-```
-
-Open http://localhost:8000, select `zoo_guide_agent`, and ask:
-> "Where can I find bears?"
+Open http://localhost:8080 to access the **Assistant AI Web UI**.
 
 ---
 
 ## ☁️ Cloud Run Deployment
 
-### Deploy MCP Server
-
-```bash
-cd mcp-on-cloudrun
-gcloud run deploy coding-zoo-mcp-server \
-    --no-allow-unauthenticated \
-    --region=us-central1 \
-    --source=. \
-    --min=1
-```
-
-### Deploy ADK Agent
-
-```bash
-cd zoo_guide_agent
-adk deploy cloud_run \
-  --project=<your-project-id> \
-  --region=us-central1 \
-  --service_name=coding-zoo-tour-guide \
-  --with_ui \
-  .
-```
-
----
-
-## 🛠️ Tech Stack
-
-| Component | Technology |
-|---|---|
-| AI Agent Framework | Google ADK (Agent Development Kit) |
-| LLM | Gemini 1.5 Flash via Vertex AI |
-| MCP Server | FastMCP (Python) |
-| Containerisation | Docker + Cloud Build |
-| Hosting | Google Cloud Run |
-| Auth | Google IAM + ID Token |
+1. **Build & Push**:
+   ```bash
+   gcloud builds submit --tag gcr.io/[PROJECT_ID]/assistant-ai
+   ```
+2. **Deploy**:
+   ```bash
+   gcloud run deploy assistant-ai \
+     --image gcr.io/[PROJECT_ID]/assistant-ai \
+     --platform managed \
+     --region us-central1 \
+     --allow-unauthenticated \
+     --set-env-vars="GOOGLE_API_KEY=your_key_here"
+   ```
 
 ---
 
@@ -128,27 +87,31 @@ adk deploy cloud_run \
 
 ```
 .
-├── Dockerfile                  # Root container image for the API
-├── main.py                     # FastAPI wrapper for the agent
-├── requirements.txt            # Python dependencies
-├── README.md
-├── zoo_guide_agent/
-│   ├── agent.py               # ADK root_agent definition with MCPToolset
-│   ├── requirements.txt       # Agent-specific dependencies
-│   ├── Dockerfile             # ADK Cloud Run container
-│   └── .env                   # Environment variables (not committed)
-└── mcp-on-cloudrun/
-    ├── server.py              # FastMCP zoo data server
-    ├── local_mcp_call.py      # Local test script
-    └── Dockerfile
+├── assistant_agent/
+│   ├── agent.py               # Multi-agent orchestrator & routing
+│   ├── database.py            # SQLite persistence layer
+│   ├── mcp_server.py          # FastMCP server integration
+│   ├── career_tools.py        # Integrated CareerPilot toolset
+│   ├── deterministic_agent.py # Emergency Mode / Local fallback
+│   └── static_knowledge.py    # Local wisdom repository
+├── main.py                     # Unified FastAPI server & MCP runner
+├── index.html                  # Premium Web UI
+├── requirements.txt            # Unified dependencies
+├── README.md                   # You are here
+└── assistant.db                # Local database (gitignored)
 ```
 
 ---
 
 ## 💡 Example Queries
 
-| Query | Expected Behaviour |
+| Intent | Sample Query |
 |---|---|
-| "Where can I find bears?" | Returns zoo habitat location + bear species info |
-| "Where can I find elephants?" | Combines MCP zoo data with conservation context |
-| "Where can I find penguins?" | Uses `fetch_animals_by_species` MCP tool |
+| **Task** | "Add 'Prepare for Hackathon' to my tasks" |
+| **Schedule** | "Show my calendar events for tomorrow" |
+| **Career** | "Suggest skills for a Cloud Architect role" |
+| **Resume** | "Provide feedback on my resume: [text]" |
+| **Resilience** | (Auto-switches to Local Mode on API failure) |
+
+---
+**Status**: 🚀 Published to GitHub & Ready for Submission.
