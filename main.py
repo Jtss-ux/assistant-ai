@@ -19,6 +19,29 @@ from assistant_agent.deterministic_agent import run_deterministic_query
 init_db()
 
 # --- SETUP MCP ENVIRONMENT ---
+port = int(os.environ.get("PORT", 8080))
+if not os.environ.get("MCP_SERVER_URL"):
+    # With FastMCP mounted at /mcp, the SSE endpoint is /mcp/sse
+    os.environ["MCP_SERVER_URL"] = f"http://localhost:{port}/mcp/sse"
+
+# ── FastAPI app ───────────────────────────────────────────────────────────────
+app = FastAPI(
+    title="Multi-Agent Personal Assistant API",
+    description="ADK-powered Assistant with Database storage and FastMCP integration.",
+    version="1.2.5",
+)
+
+# --- MIDDLEWARE ---
+# Enable CORS for browser-side interactions in production
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- MOUNT MCP SERVER ---
 # FastMCP provides an sse_app that can be mounted into FastAPI/Starlette
 app.mount("/mcp", mcp.sse_app())
 
