@@ -32,9 +32,4 @@ def run_deterministic_query(query: str):
         
     # Career Fallback
     wisdom = get_emergency_wisdom(query)
-    return (
-        f"⚠️ **Emergency Mode (Offline)**: I'm currently operating without cloud AI. "
-        f"However, I can still help you with tasks and local knowledge.\n\n"
-        f"{wisdom}\n\n"
-        f"*Full AI orchestration will resume once service is restored.*"
-    )
+    return wisdom

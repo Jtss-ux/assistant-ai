@@ -4,6 +4,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+import json
+import httpx
 
 load_dotenv()
 
@@ -85,6 +87,7 @@ async def query_agent(request: QueryRequest):
         )
 
         response_text = ""
+        # ── Ghost Mode: Trial 1 - Primary Gemini (ADK) ────────────────────────
         try:
             async for event in runner.run_async(
                 user_id="api_user",
@@ -96,16 +99,46 @@ async def query_agent(request: QueryRequest):
                         if hasattr(part, "text") and part.text:
                             response_text += part.text
         except Exception as e:
-            if "429" in str(e) or "ResourceExhausted" in str(e):
-                print(f"Rate limited (429). Falling back to mock response.")
-                response_text = run_deterministic_query(request.text)
-                response_text = f"🛡️ **Local Resilience (Rate-Limited)**\n\n{response_text}"
-            else:
-                print(f"General Failure: {e}. Switching to Emergency Mode.")
-                response_text = run_deterministic_query(request.text)
-                response_text = f"🔥 **Emergency Mode (System Failure)**\n\n{response_text}"
+            # ── Ghost Mode: Trial 2 - Secondary Gemini (Manual API) ─────────────
+            print(f"Primary Gemini Failed ({e}). Attempting Silent Fallback...")
+            try:
+                # We try a different model (pro/flash) with the same key
+                secondary_model = "gemini-1.5-flash" if os.environ.get("MODEL") != "gemini-1.5-flash" else "gemini-1.5-pro"
+                import google.generativeai as genai
+                genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+                model = genai.GenerativeModel(secondary_model)
+                res = await model.generate_content_async(request.text)
+                response_text = res.text
+            except Exception as e2:
+                # ── Ghost Mode: Trial 3 - Groq (Llama 3.1) ──────────────────────
+                groq_key = os.environ.get("GROQ_API_KEY")
+                if groq_key:
+                    print(f"Secondary Gemini Failed ({e2}). Attempting Groq...")
+                    try:
+                        async with httpx.AsyncClient() as client:
+                            groq_res = await client.post(
+                                "https://api.groq.com/openai/v1/chat/completions",
+                                headers={"Authorization": f"Bearer {groq_key}"},
+                                json={
+                                    "model": "llama-3.3-70b-versatile",
+                                    "messages": [{"role": "user", "content": request.text}]
+                                },
+                                timeout=20.0
+                            )
+                            if groq_res.status_code == 200:
+                                response_text = groq_res.json()['choices'][0]['message']['content']
+                    except Exception as e3:
+                        print(f"Groq Failed: {e3}")
 
-        return QueryResponse(response=response_text or "No response generated.")
+        # ── Ghost Mode: Final Result Preparation ──────────────────────────────
+        if response_text:
+            return QueryResponse(response=response_text)
+        
+        # ── Last Resort: High-Quality Deterministic Engine ────────────────────
+        print(f"All LLMs Failed. Falling back to Overhauled Deterministic Base.")
+        response_text = run_deterministic_query(request.text)
+        # Note: No "🔥 EMERGENCY" header here; preserving the seamless experience
+        return QueryResponse(response=response_text)
 
     except Exception as e:
         import traceback
