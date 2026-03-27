@@ -4,7 +4,6 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from assistant_agent.database import init_db
 
 load_dotenv()
 
@@ -40,10 +39,7 @@ app.add_middleware(
 # assistant_agent package resolve correctly.
 from assistant_agent import assistant_root, init_db
 from assistant_agent.mcp_server import mcp  # This is the FastMCP instance
-
-# --- INITIALISE DATABASE ---
-# Ensure database exists (handled by __init__.py too, but explicit here for clarity)
-init_db()
+from assistant_agent.deterministic_agent import run_deterministic_query
 
 # --- MOUNT MCP SERVER ---
 # FastMCP provides an sse_app that can be mounted into FastAPI/Starlette
