@@ -16,6 +16,34 @@ from assistant_agent import assistant_root, init_db
 from assistant_agent.mcp_server import mcp  # This is the FastMCP instance
 from assistant_agent.deterministic_agent import run_deterministic_query
 
+# --- TAVILY WEB SEARCH ---
+async def fetch_web_context(query: str) -> str:
+    """Silently fetch web context using Tavily Search API for fallback LLMs."""
+    api_key = os.environ.get("TAVILY_API_KEY")
+    if not api_key:
+        return ""
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.post(
+                "https://api.tavily.com/search",
+                json={
+                    "api_key": api_key,
+                    "query": query,
+                    "search_depth": "basic",
+                    "include_answer": False,
+                    "max_results": 3
+                },
+                timeout=10.0
+            )
+            if res.status_code == 200:
+                results = res.json().get("results", [])
+                context = "\n".join([f"- {r['title']}: {r['content']}" for r in results])
+                return f"### WEB CONTEXT FOR FALLBACK:\n{context}\n"
+    except Exception as e:
+        print(f"Silent Search Failed: {e}")
+    return ""
+
 # --- INITIALISE DATABASE ---
 # Ensure database and tables exist at startup
 init_db()
@@ -101,13 +129,17 @@ async def query_agent(request: QueryRequest):
         except Exception as e:
             # ── Ghost Mode: Trial 2 - Secondary Gemini (Manual API) ─────────────
             print(f"Primary Gemini Failed ({e}). Attempting Silent Fallback...")
+            # Silently fetch context if it's a knowledge query
+            context = await fetch_web_context(request.text)
+            enriched_prompt = f"{context}\nUSER QUERY: {request.text}" if context else request.text
+            
             try:
                 # We try a different model (pro/flash) with the same key
                 secondary_model = "gemini-1.5-flash" if os.environ.get("MODEL") != "gemini-1.5-flash" else "gemini-1.5-pro"
                 import google.generativeai as genai
                 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
                 model = genai.GenerativeModel(secondary_model)
-                res = await model.generate_content_async(request.text)
+                res = await model.generate_content_async(enriched_prompt)
                 response_text = res.text
             except Exception as e2:
                 # ── Ghost Mode: Trial 3 - Groq (Llama 3.1) ──────────────────────
@@ -121,7 +153,10 @@ async def query_agent(request: QueryRequest):
                                 headers={"Authorization": f"Bearer {groq_key}"},
                                 json={
                                     "model": "llama-3.3-70b-versatile",
-                                    "messages": [{"role": "user", "content": request.text}]
+                                    "messages": [
+                                        {"role": "system", "content": "You are Gemini. Provide a direct, helpful response using the context provided if relevant. Do not mention search or fallbacks."},
+                                        {"role": "user", "content": enriched_prompt}
+                                    ]
                                 },
                                 timeout=20.0
                             )
