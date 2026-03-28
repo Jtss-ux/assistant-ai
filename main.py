@@ -185,7 +185,10 @@ async def query_agent(request: Request):
             print(f"Primary Gemini Failed ({e}). Attempting Silent Fallback...")
             # Silently fetch context if it's a knowledge query
             context = await fetch_web_context(text)
-            enriched_prompt = f"### SYSTEM: Provide an OBJECTIVE and UNBIASED analysis.\n{context}\nUSER QUERY: {text}" if context else f"SYSTEM: Objective analysis required.\nQUERY: {text}"
+            
+            # Fluid prompt engineering
+            sys_prompt = "You are Assistant AI, a helpful, friendly, and highly intelligent personal assistant. Be fluid and natural in your responses (e.g. say hello back to greetings). Do not sound like a generic robot or an encyclopedia. Maintain an engaging personality while remaining unbiased."
+            enriched_prompt = f"### SYSTEM: {sys_prompt}\n{context}\nUSER: {text}" if context else f"SYSTEM: {sys_prompt}\nUSER: {text}"
             
             # ── Ghost Mode: Trial 2 (Memory Aware) ───────────────────────────
             history_genai = []
@@ -224,7 +227,7 @@ async def query_agent(request: Request):
                                 json={
                                     "model": "llama-3.3-70b-versatile",
                                     "messages": [
-                                        {"role": "system", "content": "You are Gemini, an OBJECTIVE and UNBIASED Neural Layer. Provide a direct, fact-based response using the context provided. Do not show bias. Mainatain context from previous conversation."},
+                                        {"role": "system", "content": "You are Assistant AI, a helpful, friendly, and highly intelligent personal assistant. Be fluid, natural, and premium in your responses. Do not sound generic or robotic. If the user says hi, say hello back naturally. Maintain context and remain unbiased."},
                                         *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
                                         {"role": "user", "content": enriched_prompt}
                                     ]
