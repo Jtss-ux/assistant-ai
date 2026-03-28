@@ -485,7 +485,7 @@ const AssistantChat = () => {
                 )}
                 <div 
                   className="prose prose-invert max-w-none text-sm leading-relaxed" 
-                  dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} 
+                  dangerouslySetInnerHTML={{ __html: marked.parse(msg.content || "") }} 
                 />
                 {msg.role === 'bot' && msg.duration !== undefined && (
                   <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-4 text-[9px] uppercase tracking-[0.2em] font-mono text-white/20">

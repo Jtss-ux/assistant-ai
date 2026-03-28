@@ -142,7 +142,8 @@ async def query_agent(
         import google.generativeai as raw_genai
 
         # ── Cognitive Memory Layer: Global History ──────────────────────────
-        history = get_chat_history(limit=15)
+        # Reduce limit for better stability on start
+        history = get_chat_history(limit=5)
         parts = [genai_types.Part(text=text)]
         
         # ── Multimodal Neural Mapping: File Upload ───────────────────────────
@@ -167,27 +168,30 @@ async def query_agent(
         )
 
         for msg in history:
-            role = "model" if msg['role'] == "bot" else "user"
-            if msg['content']:
-                await session.add_content(
-                    genai_types.Content(
-                        role=role,
-                        parts=[genai_types.Part(text=msg['content'])]
+            try:
+                role = "model" if msg['role'] == "bot" else "user"
+                if msg['content']:
+                    await session.add_content(
+                        genai_types.Content(
+                            role=role,
+                            parts=[genai_types.Part(text=msg['content'])]
+                        )
                     )
-                )
+            except Exception as e_mem:
+                print(f"Memory Sync Skip: {e_mem}")
 
+        # Save user message immediately for persistence
+        save_message("user", text)
+        
+        start_time = time.perf_counter()
+        response_text = "..." # Initial fallback text
+        agent_used = "Orchestrator" 
+        tokens_used = 0
+        
         new_msg = genai_types.Content(
             role="user",
             parts=parts,
         )
-
-        # Save user message
-        save_message("user", text)
-        
-        start_time = time.perf_counter()
-        response_text = ""
-        agent_used = "orchestrator"
-        tokens_used = 0
         
         # ── Ghost Mode: Trial 1 - Primary Gemini (ADK) ────────────────────────
         try:
