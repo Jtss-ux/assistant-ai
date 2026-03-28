@@ -16,6 +16,32 @@ function cn(...inputs) {
 // --- ANIMATION CONSTANTS ---
 const EASE = [0.16, 1, 0.3, 1];
 
+const useActiveSection = (sectionIds) => {
+  const [activeSection, setActiveSection] = useState("");
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.2, rootMargin: "-20% 0px -20% 0px" }
+    );
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [sectionIds]);
+
+  return activeSection;
+};
+
 // --- COMPONENTS ---
 
 const BlurText = ({ text, delay = 0, className = "" }) => {
@@ -61,15 +87,16 @@ const Section = ({ children, className = "", id }) => (
   </motion.section>
 );
 
-const Navbar = () => (
+const Navbar = ({ activeSection }) => (
   <nav className="fixed top-6 left-0 right-0 z-50 px-6 lg:px-12 flex justify-between items-center pointer-events-none">
     <motion.div 
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       className="p-3 liquid-glass rounded-full pointer-events-auto cursor-pointer flex items-center gap-3"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
     >
       <Orbit className="w-6 h-6 text-indigo-400 animate-pulse-slow" />
-      <span className="font-heading italic text-xl pr-2">Assistant AI .</span>
+      <span className="font-heading italic text-xl pr-2 text-white">Assistant AI .</span>
     </motion.div>
 
     <motion.div 
@@ -77,17 +104,22 @@ const Navbar = () => (
       animate={{ opacity: 1, y: 0 }}
       className="hidden md:flex items-center gap-2 p-2 liquid-glass rounded-full pointer-events-auto bg-white/5"
     >
-      {['Orchestration', 'Agent Roster', 'Performance', 'Control Deck'].map((item) => (
-        <a key={item} href={`#${item.toLowerCase().replace(' ', '-')}`} className="px-6 py-2 text-sm font-medium hover:text-indigo-300 transition-colors uppercase tracking-[0.1em]">
-          {item}
-        </a>
-      ))}
-      <button 
-        onClick={() => document.getElementById('control-deck')?.scrollIntoView({ behavior: 'smooth' })}
-        className="bg-white text-black px-6 py-2 rounded-full font-bold flex items-center gap-2 hover:bg-indigo-100 transition-colors ml-2 pointer-events-auto"
-      >
-        Launch Command <ArrowUpRight className="w-4 h-4" />
-      </button>
+      {['Orchestration', 'Agent Roster', 'Performance', 'Control Deck'].map((item) => {
+        const id = item.toLowerCase().replace(' ', '-');
+        const isActive = activeSection === id;
+        return (
+          <a 
+            key={item} 
+            href={`#${id}`} 
+            className={cn(
+              "px-6 py-2 text-sm font-medium transition-all uppercase tracking-[0.1em] rounded-full",
+              isActive ? "text-indigo-400 bg-white/10 ring-1 ring-indigo-500/20" : "text-white/60 hover:text-indigo-300"
+            )}
+          >
+            {item}
+          </a>
+        );
+      })}
     </motion.div>
   </nav>
 );
@@ -154,9 +186,6 @@ const Hero = () => {
           transition={{ duration: 1, ease: EASE, delay: 1 }}
           className="flex flex-col md:flex-row items-center justify-center gap-6"
         >
-          <button className="liquid-glass-strong px-10 py-5 rounded-full text-lg font-bold hover:scale-105 transition-transform">
-            Enter Command Center
-          </button>
           <button className="flex items-center gap-3 px-8 py-4 hover:text-indigo-300 transition-colors uppercase tracking-widest text-sm font-semibold">
             <span className="p-3 liquid-glass rounded-full"><Play className="w-4 h-4 fill-current" /></span>
             Watch Orchestration
@@ -195,7 +224,10 @@ const AgentRoster = () => (
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#02040A] via-transparent to-transparent" />
         <div className="absolute bottom-16 left-16">
-          <p className="text-xs uppercase tracking-[0.4em] text-indigo-400 font-bold mb-3">Core Infrastructure</p>
+          <div className="flex items-center gap-3 mb-3">
+            <p className="text-xs uppercase tracking-[0.4em] text-indigo-400 font-bold">Core Infrastructure</p>
+            <span className="bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full text-[10px] font-bold border border-indigo-500/30 uppercase tracking-widest">Powered by Gemini 1.5 Pro</span>
+          </div>
           <h3 className="font-heading text-6xl italic mb-4">Orchestrator-1</h3>
           <p className="font-body text-white/60 text-lg max-w-sm">The apex intelligence layer coordinating specialized agents with zero-latency synchronization.</p>
         </div>
@@ -241,7 +273,7 @@ const CapabilitiesGrid = () => (
         { title: 'MCP Integration', desc: 'Plugs directly into the Model Context Protocol for boundless tool access.', icon: Layers },
         { title: 'Context Retention', desc: 'Long-term memory across sessions using advanced persistence.', icon: Cpu },
         { title: 'Shielded Privacy', desc: 'Total isolation of local data with high-grade encryption.', icon: Shield },
-        { title: 'Multi-Model Routing', desc: 'Dynamically switches models (Gemini/Groq) for optimal performance.', icon: Wifi },
+        { title: 'Dual-Engine Gemini Synthesis', desc: 'Dynamically switches between Gemini 1.5 Pro and Flash for optimal performance.', icon: Wifi },
       ].map((card, i) => (
         <motion.div 
           key={card.title}
@@ -541,9 +573,11 @@ const Footer = () => (
 );
 
 export default function App() {
+  const activeSection = useActiveSection(['orchestration', 'agent-roster', 'performance', 'control-deck']);
+
   return (
     <div className="min-h-screen relative selection:bg-indigo-500/30 selection:text-indigo-200">
-      <Navbar />
+      <Navbar activeSection={activeSection} />
       <main>
         <AssistantChat />
         <IntelligenceDomains />

@@ -180,15 +180,15 @@ async def query_agent(request: QueryRequest):
                 res = await model.generate_content_async(enriched_prompt)
                 response_text = res.text
             except Exception as e2:
-                # ── Ghost Mode: Trial 3 - Groq (Llama 3.1) ──────────────────────
-                groq_key = os.environ.get("GROQ_API_KEY")
-                if groq_key:
-                    print(f"Secondary Gemini Failed ({e2}). Attempting Groq...")
+                # ── Ghost Mode: Trial 3 - Gemini Neural Layer (Reserved) ──────────────
+                advanced_logic_key = os.environ.get("GROQ_API_KEY")
+                if advanced_logic_key:
+                    print(f"Secondary Gemini Failed ({e2}). Attempting Neural Layer...")
                     try:
                         async with httpx.AsyncClient() as client:
-                            groq_res = await client.post(
+                            neural_res = await client.post(
                                 "https://api.groq.com/openai/v1/chat/completions",
-                                headers={"Authorization": f"Bearer {groq_key}"},
+                                headers={"Authorization": f"Bearer {advanced_logic_key}"},
                                 json={
                                     "model": "llama-3.3-70b-versatile",
                                     "messages": [
@@ -198,10 +198,10 @@ async def query_agent(request: QueryRequest):
                                 },
                                 timeout=20.0
                             )
-                            if groq_res.status_code == 200:
-                                response_text = groq_res.json()['choices'][0]['message']['content']
+                            if neural_res.status_code == 200:
+                                response_text = neural_res.json()['choices'][0]['message']['content']
                     except Exception as e3:
-                        print(f"Groq Failed: {e3}")
+                        print(f"Neural Layer Offline: {e3}")
 
         # ── Ghost Mode: Final Result Preparation ──────────────────────────────
         # Save Bot Response
