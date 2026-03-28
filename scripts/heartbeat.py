@@ -8,16 +8,18 @@ RENDER_URL = os.environ.get("RENDER_EXTERNAL_URL", "https://assistant-ai-uqu4.on
 PING_ENDPOINT = f"{RENDER_URL.rstrip('/')}/ping"
 
 def pulse():
-    print(f"💓 Sending heartbeat to {PING_ENDPOINT}...")
+    current_time = time.ctime()
+    print(f"💓 [{current_time}] Sending heartbeat to {PING_ENDPOINT}...")
+    headers = {"User-Agent": "AssistantHeartbeat/1.2 (Uptime Bot; Render Keep-Alive)"}
     try:
-        with httpx.Client(timeout=10.0) as client:
+        with httpx.Client(timeout=10.0, headers=headers) as client:
             response = client.get(PING_ENDPOINT)
             if response.status_code == 200 and response.text.strip('"') == "pong":
-                print("✅ Service is Awake!")
+                print(f"✅ [{current_time}] Service is Awake!")
             else:
-                print(f"⚠️ Health check returned unexpected status: {response.status_code}")
+                print(f"⚠️ [{current_time}] Health check returned unexpected status: {response.status_code}")
     except Exception as e:
-        print(f"❌ Heartbeat Failed: {e}")
+        print(f"❌ [{current_time}] Heartbeat Failed: {e}")
 
 if __name__ == "__main__":
     # If run manually, it does one pulse.

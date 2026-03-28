@@ -59,6 +59,7 @@
             font-weight: 600;
             background: linear-gradient(135deg, #a5b4fc, #e879f9);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 0.5rem;
         }
@@ -117,6 +118,11 @@
         .data-card:hover {
             border-color: var(--primary);
             background: rgba(255, 255, 255, 0.05);
+        }
+
+        .data-card-info {
+            color: var(--text-muted);
+            text-align: center;
         }
 
         .agent-log {
@@ -274,7 +280,7 @@
             <section>
                 <div class="section-title">Active Tasks <span id="task-count">0</span></div>
                 <div id="tasks-list">
-                    <div class="data-card" style="color: var(--text-muted); text-align: center;">No active tasks</div>
+                    <div class="data-card data-card-info">No active tasks</div>
                 </div>
             </section>
             <section>
@@ -288,7 +294,7 @@
             <section>
                 <div class="section-title">Quick Notes</div>
                 <div id="notes-list">
-                    <div class="data-card" style="color: var(--text-muted); text-align: center;">No notes found</div>
+                    <div class="data-card data-card-info">No notes found</div>
                 </div>
             </section>
         </div>

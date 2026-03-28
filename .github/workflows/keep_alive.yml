@@ -2,8 +2,8 @@ name: Render Keep-Alive Heartbeat
 
 on:
   schedule:
-    # Run every 10 minutes to beat Render's 15-minute timeout
-    - cron: '*/10 * * * *'
+    # Run every 5 minutes to beat Render's 15-minute timeout
+    - cron: '*/5 * * * *'
   workflow_dispatch: # Allows manual trigger
 
 jobs:
