@@ -48,8 +48,9 @@ const BlurText = ({ text, delay = 0, className = "" }) => {
   );
 };
 
-const Section = ({ children, className = "" }) => (
+const Section = ({ children, className = "", id }) => (
   <motion.section
+    id={id}
     initial={{ opacity: 0, filter: 'blur(10px)' }}
     whileInView={{ opacity: 1, filter: 'blur(0px)' }}
     viewport={{ once: true, margin: "-100px" }}
@@ -81,7 +82,10 @@ const Navbar = () => (
           {item}
         </a>
       ))}
-      <button className="bg-white text-black px-6 py-2 rounded-full font-bold flex items-center gap-2 hover:bg-indigo-100 transition-colors ml-2">
+      <button 
+        onClick={() => document.getElementById('control-deck')?.scrollIntoView({ behavior: 'smooth' })}
+        className="bg-white text-black px-6 py-2 rounded-full font-bold flex items-center gap-2 hover:bg-indigo-100 transition-colors ml-2 pointer-events-auto"
+      >
         Launch Command <ArrowUpRight className="w-4 h-4" />
       </button>
     </motion.div>
@@ -164,7 +168,7 @@ const Hero = () => {
 };
 
 const MissionBlock = () => (
-  <Section className="py-40 px-6 flex flex-col items-center text-center">
+  <Section id="orchestration" className="py-40 px-6 flex flex-col items-center text-center">
     <motion.div 
       initial={{ height: 0 }}
       whileInView={{ height: 100 }}
@@ -227,7 +231,7 @@ const AgentRoster = () => (
 );
 
 const CapabilitiesGrid = () => (
-  <Section id="capabilities" className="py-32 px-6 lg:px-12 max-w-[1600px] mx-auto text-center relative">
+  <Section id="performance" className="py-32 px-6 lg:px-12 max-w-[1600px] mx-auto text-center relative">
     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 blur-[180px] rounded-full -z-10" />
     <h2 className="font-heading text-6xl mb-20">Engineering the Impossible</h2>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -541,13 +545,13 @@ export default function App() {
     <div className="min-h-screen relative selection:bg-indigo-500/30 selection:text-indigo-200">
       <Navbar />
       <main>
+        <AssistantChat />
+        <IntelligenceDomains />
         <Hero />
         <MissionBlock />
         <AgentRoster />
         <CapabilitiesGrid />
         <JourneyTimeline />
-        <IntelligenceDomains />
-        <AssistantChat />
         <FAQSection />
       </main>
       <Footer />
