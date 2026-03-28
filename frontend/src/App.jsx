@@ -385,8 +385,8 @@ const AssistantChat = () => {
     if (isTyping) {
       setLiveDuration(0);
       interval = setInterval(() => {
-        setLiveDuration(prev => prev + 0.1);
-      }, 100);
+        setLiveDuration(prev => Number((prev + 0.01).toFixed(2)));
+      }, 10);
     } else {
       clearInterval(interval);
     }

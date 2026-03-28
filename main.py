@@ -43,8 +43,13 @@ async def fetch_web_context(query: str) -> str:
                 results = res.json().get("results", [])
                 context = "\n".join([f"- {r['title']}: {r['content']}" for r in results])
                 return f"### WEB CONTEXT FOR FALLBACK:\n{context}\n"
+            elif res.status_code in [401, 403]:
+                print("Silent Search: Unauthorized (Invalid Tavily Key). Skipping context.")
+            elif res.status_code == 429:
+                print("Silent Search: Rate limited. Skipping context.")
     except Exception as e:
-        print(f"Silent Search Failed: {e}")
+        # Keep failures silent for production smoothness
+        pass
     return ""
 
 # --- INITIALISE DATABASE ---
