@@ -219,10 +219,15 @@ async def query_agent(
             
             try:
                 # We try a different model (pro/flash) with the same key
-                secondary_model = "gemini-1.5-flash" if os.environ.get("MODEL") != "gemini-1.5-flash" else "gemini-1.5-pro"
+                base_model = os.environ.get("MODEL", "gemini-1.5-flash")
+                secondary_model = "gemini-1.5-pro" if "flash" in base_model else "gemini-1.5-flash"
+                
+                # IMPORTANT: legacy google.generativeai requires 'models/' prefix
+                legacy_model_name = f"models/{secondary_model}"
+                
                 import google.generativeai as genai
                 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-                model = genai.GenerativeModel(secondary_model)
+                model = genai.GenerativeModel(legacy_model_name)
                 # Pass history as contents
                 res = await model.generate_content_async([*history_genai, {"role": "user", "parts": [enriched_prompt]}])
                 response_text = res.text
