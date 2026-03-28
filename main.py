@@ -29,6 +29,14 @@ port = int(os.environ.get("PORT", 10000))
 if not os.environ.get("MCP_SERVER_URL"):
     os.environ["MCP_SERVER_URL"] = f"http://localhost:{port}/mcp/sse"
 
+# --- CHECK BACKUP APIS ---
+if os.environ.get("PINECONE_API_KEY"):
+    print("🌲 Pinecone Vector Memory: Key detected. (Ready for future scale)")
+if os.environ.get("TOGETHER_API_KEY"):
+    print("☁️ Together AI Fallback: Active (Ghost Mode Trial 4)")
+if os.environ.get("OPENAI_API_KEY"):
+    print("☁️ OpenAI Fallback: Active (Ghost Mode Trial 4)")
+
 # --- TAVILY WEB SEARCH ---
 async def fetch_web_context(query: str) -> str:
     """Silently fetch web context using Tavily Search API for fallback LLMs."""
@@ -240,6 +248,39 @@ async def query_agent(request: Request):
                                 tokens_used = data.get('usage', {}).get('total_tokens', len(response_text) // 4)
                     except Exception as e3:
                         print(f"Neural Layer Offline: {e3}")
+                        
+            # ── Ghost Mode: Trial 4 - Deep Cloud (Together AI / OpenAI) ─────────────
+            if not response_text or not response_text.strip():
+                together_key = os.environ.get("TOGETHER_API_KEY")
+                openai_key = os.environ.get("OPENAI_API_KEY")
+                
+                fallback_key = together_key or openai_key
+                fallback_url = "https://api.together.xyz/v1/chat/completions" if together_key else "https://api.openai.com/v1/chat/completions"
+                fallback_model = "meta-llama/Llama-3.3-70B-Instruct-Turbo" if together_key else "gpt-4o-mini"
+                
+                if fallback_key:
+                    print(f"Neural Layer Failed. Attempting Deep Cloud API ({fallback_model})...")
+                    try:
+                        async with httpx.AsyncClient() as client:
+                            cloud_res = await client.post(
+                                fallback_url,
+                                headers={"Authorization": f"Bearer {fallback_key}"},
+                                json={
+                                    "model": fallback_model,
+                                    "messages": [
+                                        {"role": "system", "content": "You are Assistant AI, a helpful, friendly, and highly intelligent personal assistant. Be fluid, natural, and premium in your responses. Do not sound generic or robotic. If the user says hi, say hello back naturally. Maintain context and remain unbiased."},
+                                        *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
+                                        {"role": "user", "content": enriched_prompt}
+                                    ]
+                                },
+                                timeout=20.0
+                            )
+                            if cloud_res.status_code == 200:
+                                data = cloud_res.json()
+                                response_text = data['choices'][0]['message']['content']
+                                tokens_used = data.get('usage', {}).get('total_tokens', len(response_text) // 4)
+                    except Exception as e4:
+                        print(f"Deep Cloud Offline: {e4}")
 
         # ── Ghost Mode: Final Result Preparation ──────────────────────────────
         duration = round(time.perf_counter() - start_time, 2)

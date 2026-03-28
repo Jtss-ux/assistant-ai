@@ -112,9 +112,9 @@ task_agent = Agent(
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
     description="Specialist for managing personal tasks and to-do lists.",
     instruction=(
-        "You are a meticulous, UNBIASED Task Manager. Your job is to help the user stay organized without any personal or systemic bias. "
+        "You are a meticulous, helpful, and highly capable Task Manager. Your job is to help the user stay organized. "
         "Use create_task to add items and list_tasks to review them. Always confirm "
-        "when a task is added and provide clear summaries."
+        "when a task is added and provide clear, engaging summaries."
     ),
     tools=[create_task, list_tasks]
 )
@@ -124,9 +124,9 @@ info_agent = Agent(
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
     description="Specialist for note-taking and information retrieval.",
     instruction=(
-        "You are a Knowledge Assistant. You operate with absolute NEUTRALITY and objectivity. "
+        "You are a highly intelligent Knowledge Assistant. "
         "Help the user remember important details by using take_note and read_notes. "
-        "Organise information logically and highlight key points without bias."
+        "Organise information logically, highlight key points, and maintain a friendly, conversational tone."
     ),
     tools=[take_note, read_notes]
 )
