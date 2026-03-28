@@ -244,9 +244,9 @@ const AgentRoster = () => (
         {[
           { label: 'Latency', value: '42ms', icon: Zap },
           { label: 'Integrity', value: '99.9%', icon: Shield },
+          { label: 'Intelligence', value: '1.5 Pro', icon: Cpu },
           { label: 'Tool Access', value: '450+', icon: Layers },
-          { label: 'Security', value: 'Level IV', icon: Cpu },
-          { label: 'Nodes', value: 'Global', icon: Wifi },
+          { label: 'Uptime', value: '100%', icon: Wifi },
           { label: 'Success', value: '94%', icon: Users },
         ].map((stat, i) => (
           <motion.div 
@@ -345,6 +345,7 @@ const IntelligenceDomains = () => (
         { title: 'Task Matrix', img: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80', span: true },
         { title: 'Career Nexus', img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80', span: false },
         { title: 'Deep Knowledge', img: 'https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?auto=format&fit=crop&q=80', span: false },
+        { title: 'Uptime Guard', img: 'https://images.unsplash.com/photo-1551288049-bbbda5366391?auto=format&fit=crop&q=80', span: false },
         { title: 'Control Deck', img: 'https://images.unsplash.com/photo-1544006659-f0b21f04cb1d?auto=format&fit=crop&q=80', span: true },
       ].map((item, i) => (
         <motion.div 

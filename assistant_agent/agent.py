@@ -124,26 +124,39 @@ def get_resilient_mcp_toolset():
     primary_url = os.environ.get("MCP_SERVER_URL", "https://xyfnyu8q.ap-southeast.insforge.app")
     fallback_url = os.environ.get("MCP_FALLBACK_URL", "http://localhost:8080/mcp/sse")
     
-    # Simple check for availability
     selected_url = primary_url
     try:
-        # Check if primary is reachable (minimal timeout)
-        # Note: We append /sse if it's missing or just check root
         check_url = primary_url.replace("/sse", "")
         with httpx.Client(timeout=3.0) as client:
             res = client.get(check_url)
             if res.status_code != 200:
-                print(f"⚠️ Primary MCP ({primary_url}) offline. Switching to Fallback.")
+                print(f"⚠️ Primary MCP offline. Switching to Fallback.")
                 selected_url = fallback_url
     except Exception:
-        print(f"⚠️ Primary MCP Connection Failed. Using Fallback: {fallback_url}")
+        print(f"⚠️ Primary MCP Connection Failed. Using Fallback.")
         selected_url = fallback_url
 
     print(f"✅ Initializing Agent with MCP: {selected_url}")
     params = StreamableHTTPConnectionParams(url=selected_url)
     return MCPToolset(connection_params=params)
 
+def get_uptimerobot_toolset():
+    """Connects to the official UptimeRobot MCP server."""
+    api_key = os.environ.get("UPTIMEROBOT_API_KEY")
+    if not api_key:
+        return None
+    
+    url = "https://mcp.uptimerobot.com/mcp"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "X-MCP-Content-Format": "true"
+    }
+    print(f"✅ Initializing Uptime Guard with remote MCP: {url}")
+    params = StreamableHTTPConnectionParams(url=url, headers=headers)
+    return MCPToolset(connection_params=params)
+
 mcp_toolset = get_resilient_mcp_toolset()
+uptime_toolset = get_uptimerobot_toolset()
 
 schedule_agent = Agent(
     name="schedule_agent",
@@ -168,13 +181,25 @@ career_agent = Agent(
     tools=[suggest_skills, suggest_projects, resume_feedback, career_path_guide]
 )
 
+uptime_agent = Agent(
+    name="uptime_agent",
+    model=os.environ.get("MODEL", "gemini-1.5-flash"),
+    description="Specialist for system monitoring, site health, and uptime alerts.",
+    instruction=(
+        "You are the Uptime Guard of Assistant AI. Monitor service availability, investigate "
+        "downtime incidents, and manage monitors using the UptimeRobot tools. Provide "
+        "accurate uptime percentages and immediate troubleshooting steps for incidents."
+    ),
+    tools=[uptime_toolset] if uptime_toolset else []
+)
+
 # --- ORCHESTRATOR ---
 
 assistant_root = Agent(
     name="assistant_root",
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
     description="Personal AI Assistant orchestrator for tasks, schedules, and information.",
-    sub_agents=[task_agent, info_agent, schedule_agent, career_agent],
+    sub_agents=[task_agent, info_agent, schedule_agent, career_agent, uptime_agent],
     instruction="""
 You are the **Assistant AI Orchestrator**. Your role is to coordinate specialized sub-agents while maintaining 100% UNBIASED and NEUTRAL status.
 
@@ -183,7 +208,8 @@ You are the **Assistant AI Orchestrator**. Your role is to coordinate specialize
 - **Task Management**: For tasks → Route to **task_agent**.
 - **Information & Notes**: For notes → Route to **info_agent**.
 - **Scheduling**: For events → Route to **schedule_agent**.
-- **Career Growth**: For career advice → Route to **career_agent**.
+- **Career Growth**: For advice → Route to **career_agent**.
+- **System Health & Uptime**: For site status, incidents, or monitoring → Route to **uptime_agent**.
 - **Visualization**: If the user asks for an image, to illustrate a concept, or to see something → USE **generate_visualization**.
 
 ### ⚖️ Neutral Engine Protocol:

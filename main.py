@@ -91,6 +91,7 @@ class QueryResponse(BaseModel):
     metadata: dict = {}
 
 @app.get("/")
+@app.head("/")
 async def root():
     """Serve the modern Cinematic React UI."""
     if os.path.exists("frontend/dist/index.html"):
