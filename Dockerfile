@@ -15,9 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source
 COPY . .
 
-# Cloud Run always injects PORT; default to 8080
-EXPOSE 8080
-ENV PORT=8080
+# Render injects PORT at runtime (defaults to 10000); do NOT hardcode it here.
+EXPOSE 10000
 ENV PYTHONUNBUFFERED=1
 
 # Use custom entry point to run both the Agent and the MCP server

@@ -57,7 +57,7 @@ async def fetch_web_context(query: str) -> str:
 init_db()
 
 # --- SETUP MCP ENVIRONMENT ---
-port = int(os.environ.get("PORT", 8080))
+port = int(os.environ.get("PORT", 10000))
 if not os.environ.get("MCP_SERVER_URL"):
     # With FastMCP mounted at /mcp, the SSE endpoint is /mcp/sse
     os.environ["MCP_SERVER_URL"] = f"http://localhost:{port}/mcp/sse"
@@ -189,7 +189,7 @@ async def query_agent(
         save_message("user", text)
         
         start_time = time.perf_counter()
-        response_text = "..." # Initial fallback text
+        response_text = ""  # Must start empty so truthiness check works correctly
         agent_used = "Orchestrator" 
         tokens_used = 0
         
@@ -215,6 +215,7 @@ async def query_agent(
             tokens_used = len(response_text) // 4
         except Exception as e:
             # ── Ghost Mode: Trial 2 - Secondary Gemini (Manual API) ─────────────
+            response_text = ""  # Reset: partial data from failed Trial 1 is unusable
             print(f"Primary Gemini Failed ({e}). Attempting Silent Fallback...")
             # Silently fetch context if it's a knowledge query
             context = await fetch_web_context(text)
@@ -275,8 +276,8 @@ async def query_agent(
         duration = round(time.perf_counter() - start_time, 2)
         tps = round(tokens_used / duration, 1) if duration > 0 else 0
         
-        # Save Bot Response
-        if response_text:
+        # Save Bot Response only if we got real content from an LLM
+        if response_text and response_text.strip() and response_text != "...":
             save_message(
                 "bot", 
                 response_text, 
