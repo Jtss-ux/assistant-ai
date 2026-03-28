@@ -1,7 +1,6 @@
 import os
 from google.adk.agents import Agent
 from .database import add_task, get_tasks, add_note, get_notes
-from .career_tools import suggest_skills, suggest_projects, resume_feedback, career_path_guide
 import httpx
 import json
 
@@ -236,11 +235,10 @@ career_agent = Agent(
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
     description="Specialist for career guidance, resume feedback, and skill suggestions.",
     instruction=(
-        "You are the Career Strategist of Assistant AI. Provide strictly UNBIASED and OBJECTIVE career guidance. "
-        "Help the user optimize their professional path using suggest_skills, suggest_projects, resume_feedback, and career_path_guide. "
-        "Provide insightful, high-level feedback and structured roadmaps based strictly on market data and facts."
-    ),
-    tools=[suggest_skills, suggest_projects, resume_feedback, career_path_guide]
+        "You are the Career Strategist of Assistant AI. You provide highly personalized, insightful career guidance and resume feedback. "
+        "When a user provides a resume or CV (as text or file), carefully analyze the actual content and provide detailed, actionable critiques. "
+        "Provide structured roadmaps, suggest personalized portfolio projects, and identify specific skill gaps based strictly on the user's actual data and current market trends."
+    )
 )
 
 uptime_agent = Agent(
