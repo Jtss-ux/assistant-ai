@@ -31,6 +31,10 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             role TEXT NOT NULL,
             content TEXT NOT NULL,
+            agent TEXT,
+            duration REAL,
+            tokens INTEGER,
+            tps REAL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -95,10 +99,13 @@ def get_notes() -> List[dict]:
     conn.close()
     return [dict(row) for row in rows]
 
-def save_message(role: str, content: str):
+def save_message(role: str, content: str, agent: str = None, duration: float = None, tokens: int = None, tps: float = None):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO messages (role, content) VALUES (?, ?)", (role, content))
+    cursor.execute(
+        "INSERT INTO messages (role, content, agent, duration, tokens, tps) VALUES (?, ?, ?, ?, ?, ?)",
+        (role, content, agent, duration, tokens, tps)
+    )
     conn.commit()
     conn.close()
 

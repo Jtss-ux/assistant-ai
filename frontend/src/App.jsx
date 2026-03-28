@@ -102,9 +102,9 @@ const Navbar = ({ activeSection }) => (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="hidden md:flex items-center gap-2 p-2 liquid-glass rounded-full pointer-events-auto bg-white/5"
+      className="hidden md:flex items-center gap-1 p-2 liquid-glass rounded-full pointer-events-auto bg-white/5 relative"
     >
-      {['Orchestration', 'Agent Roster', 'Performance', 'Control Deck'].map((item) => {
+      {['Control Deck', 'Domains', 'Intro', 'Orchestration', 'Agent Roster', 'Performance'].map((item) => {
         const id = item.toLowerCase().replace(' ', '-');
         const isActive = activeSection === id;
         return (
@@ -112,11 +112,18 @@ const Navbar = ({ activeSection }) => (
             key={item} 
             href={`#${id}`} 
             className={cn(
-              "px-6 py-2 text-sm font-medium transition-all uppercase tracking-[0.1em] rounded-full",
-              isActive ? "text-indigo-400 bg-white/10 ring-1 ring-indigo-500/20" : "text-white/60 hover:text-indigo-300"
+              "px-5 py-2 text-[10px] font-bold transition-colors uppercase tracking-[0.2em] rounded-full relative z-10",
+              isActive ? "text-white" : "text-white/40 hover:text-white/70"
             )}
           >
             {item}
+            {isActive && (
+              <motion.div 
+                layoutId="nav-pill"
+                className="absolute inset-0 bg-indigo-500/20 ring-1 ring-indigo-500/40 rounded-full -z-10"
+                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+              />
+            )}
           </a>
         );
       })}
@@ -144,7 +151,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <header ref={containerRef} className="relative h-screen flex items-center justify-center overflow-hidden">
+    <header id="intro" ref={containerRef} className="relative h-screen flex items-center justify-center overflow-hidden">
       <motion.div style={{ y, scale }} className="absolute inset-0 z-0">
         <video 
           autoPlay loop muted playsInline
@@ -326,7 +333,7 @@ const JourneyTimeline = () => (
 );
 
 const IntelligenceDomains = () => (
-  <Section id="worlds-await" className="py-32 px-6 lg:px-12 max-w-[1600px] mx-auto">
+  <Section id="domains" className="py-32 px-6 lg:px-12 max-w-[1600px] mx-auto">
     <div className="flex justify-between items-end mb-16">
       <h2 className="font-heading text-6xl">Intelligence Domains</h2>
       <a href="#" className="uppercase tracking-[0.2em] text-xs font-bold text-indigo-400 hover:text-white transition-colors pb-2 border-b border-indigo-500">Explore All Modules</a>
@@ -366,7 +373,21 @@ const AssistantChat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [liveDuration, setLiveDuration] = useState(0);
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    let interval;
+    if (isTyping) {
+      setLiveDuration(0);
+      interval = setInterval(() => {
+        setLiveDuration(prev => prev + 0.1);
+      }, 100);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isTyping]);
 
   useEffect(() => {
     fetch('/history').then(r => r.json()).then(data => {
@@ -394,7 +415,14 @@ const AssistantChat = () => {
         body: JSON.stringify({ text: userMsg })
       });
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'bot', content: data.response, agent: data.metadata?.agent }]);
+      setMessages(prev => [...prev, { 
+        role: 'bot', 
+        content: data.response, 
+        agent: data.metadata?.agent,
+        duration: data.metadata?.duration,
+        tokens: data.metadata?.tokens,
+        tps: data.metadata?.tps
+      }]);
     } catch (e) {
       setMessages(prev => [...prev, { role: 'bot', content: "Error connecting to orchestrator." }]);
     } finally {
@@ -435,14 +463,28 @@ const AssistantChat = () => {
                 msg.role === 'user' ? "bg-indigo-600 text-white rounded-br-none" : "liquid-glass rounded-bl-none text-white/90"
               )}>
                 <div className="prose prose-invert max-w-none text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} />
+                {msg.role === 'bot' && msg.duration !== undefined && (
+                  <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-4 text-[9px] uppercase tracking-[0.2em] font-mono text-white/20">
+                    <span>{msg.duration}s</span>
+                    <span className="w-1 h-1 bg-white/10 rounded-full" />
+                    <span>{msg.tokens} tokens</span>
+                    <span className="w-1 h-1 bg-white/10 rounded-full" />
+                    <span>{msg.tps} t/s</span>
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
           {isTyping && (
-            <div className="flex gap-2 p-4 liquid-glass rounded-full w-24 justify-center">
-              <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" />
-              <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.2s]" />
-              <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.4s]" />
+            <div className="flex flex-col items-start gap-4 p-6 liquid-glass rounded-[2rem] w-64">
+              <div className="flex gap-2">
+                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" />
+                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.2s]" />
+                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.4s]" />
+              </div>
+              <div className="text-[9px] uppercase tracking-[0.2em] font-mono text-indigo-400/60 animate-pulse">
+                Neural Mapping: {liveDuration.toFixed(1)}s
+              </div>
             </div>
           )}
         </div>
@@ -569,7 +611,7 @@ const Footer = () => (
 );
 
 export default function App() {
-  const activeSection = useActiveSection(['orchestration', 'agent-roster', 'performance', 'control-deck']);
+  const activeSection = useActiveSection(['control-deck', 'domains', 'intro', 'orchestration', 'agent-roster', 'performance']);
 
   return (
     <div className="min-h-screen relative selection:bg-indigo-500/30 selection:text-indigo-200">

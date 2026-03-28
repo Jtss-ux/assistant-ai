@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import json
 import httpx
+import time
 
 load_dotenv()
 
@@ -147,9 +148,11 @@ async def query_agent(request: QueryRequest):
 
         # Save user message
         save_message("user", request.text)
-
+        
+        start_time = time.perf_counter()
         response_text = ""
         agent_used = "orchestrator"
+        tokens_used = 0
         
         # ── Ghost Mode: Trial 1 - Primary Gemini (ADK) ────────────────────────
         try:
@@ -164,6 +167,8 @@ async def query_agent(request: QueryRequest):
                     for part in event.content.parts:
                         if hasattr(part, "text") and part.text:
                             response_text += part.text
+            # Estimate tokens for ADK (approx 1 token per 4 chars)
+            tokens_used = len(response_text) // 4
         except Exception as e:
             # ── Ghost Mode: Trial 2 - Secondary Gemini (Manual API) ─────────────
             print(f"Primary Gemini Failed ({e}). Attempting Silent Fallback...")
@@ -179,6 +184,10 @@ async def query_agent(request: QueryRequest):
                 model = genai.GenerativeModel(secondary_model)
                 res = await model.generate_content_async(enriched_prompt)
                 response_text = res.text
+                if hasattr(res, 'usage_metadata'):
+                    tokens_used = res.usage_metadata.total_token_count
+                else:
+                    tokens_used = len(response_text) // 4
             except Exception as e2:
                 # ── Ghost Mode: Trial 3 - Gemini Neural Layer (Reserved) ──────────────
                 advanced_logic_key = os.environ.get("GROQ_API_KEY")
@@ -199,21 +208,57 @@ async def query_agent(request: QueryRequest):
                                 timeout=20.0
                             )
                             if neural_res.status_code == 200:
-                                response_text = neural_res.json()['choices'][0]['message']['content']
+                                data = neural_res.json()
+                                response_text = data['choices'][0]['message']['content']
+                                tokens_used = data.get('usage', {}).get('total_tokens', len(response_text) // 4)
                     except Exception as e3:
                         print(f"Neural Layer Offline: {e3}")
 
         # ── Ghost Mode: Final Result Preparation ──────────────────────────────
+        duration = round(time.perf_counter() - start_time, 2)
+        tps = round(tokens_used / duration, 1) if duration > 0 else 0
+        
         # Save Bot Response
         if response_text:
-            save_message("bot", response_text)
-            return QueryResponse(response=response_text, metadata={"agent": agent_used})
+            save_message(
+                "bot", 
+                response_text, 
+                agent=agent_used, 
+                duration=duration, 
+                tokens=tokens_used, 
+                tps=tps
+            )
+            return QueryResponse(
+                response=response_text, 
+                metadata={
+                    "agent": agent_used,
+                    "duration": duration,
+                    "tokens": tokens_used,
+                    "tps": tps
+                }
+            )
         
         # ── Last Resort: High-Quality Deterministic Engine ────────────────────
         print(f"All LLMs Failed. Falling back to Overhauled Deterministic Base.")
         response_text = run_deterministic_query(request.text)
-        save_message("bot", response_text)
-        return QueryResponse(response=response_text, metadata={"agent": "deterministic_engine"})
+        duration = round(time.perf_counter() - start_time, 2)
+        save_message(
+            "bot", 
+            response_text, 
+            agent="deterministic_engine", 
+            duration=duration, 
+            tokens=len(response_text) // 4, 
+            tps=0
+        )
+        return QueryResponse(
+            response=response_text, 
+            metadata={
+                "agent": "deterministic_engine",
+                "duration": duration,
+                "tokens": len(response_text) // 4,
+                "tps": 0
+            }
+        )
 
     except Exception as e:
         import traceback
