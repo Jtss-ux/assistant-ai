@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Form, File, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -130,24 +130,58 @@ async def dashboard_data():
     }
 
 @app.post("/query", response_model=QueryResponse)
-async def query_agent(request: QueryRequest):
-    """Run a query through the Personal Assistant ADK agent."""
+async def query_agent(
+    text: str = Form(...),
+    file: UploadFile = File(None)
+):
+    """Run a query through the Personal Assistant ADK agent with Multimodal support."""
     try:
         from google.adk.runners import InMemoryRunner
         from google.genai import types as genai_types
+        import google.generativeai as raw_genai
+
+        # ── Cognitive Memory Layer: Global History ──────────────────────────
+        history = get_chat_history(limit=15)
+        parts = [genai_types.Part(text=text)]
+        
+        # ── Multimodal Neural Mapping: File Upload ───────────────────────────
+        if file:
+            temp_path = f"tmp_{file.filename}"
+            with open(temp_path, "wb") as buffer:
+                buffer.write(await file.read())
+            
+            # Use raw GenAI to upload and get URI for ADK
+            raw_genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+            uploaded_file = raw_genai.upload_file(temp_path)
+            parts.append(genai_types.Part(file_data=genai_types.FileData(
+                file_uri=uploaded_file.uri, 
+                mime_type=file.content_type
+            )))
+            # Cleanup local temp
+            os.remove(temp_path)
 
         runner = InMemoryRunner(agent=assistant_root, app_name="assistant_api")
         session = await runner.session_service.create_session(
             app_name="assistant_api", user_id="api_user"
         )
 
+        for msg in history:
+            role = "model" if msg['role'] == "bot" else "user"
+            if msg['content']:
+                await session.add_content(
+                    genai_types.Content(
+                        role=role,
+                        parts=[genai_types.Part(text=msg['content'])]
+                    )
+                )
+
         new_msg = genai_types.Content(
             role="user",
-            parts=[genai_types.Part(text=request.text)],
+            parts=parts,
         )
 
         # Save user message
-        save_message("user", request.text)
+        save_message("user", text)
         
         start_time = time.perf_counter()
         response_text = ""
@@ -173,8 +207,14 @@ async def query_agent(request: QueryRequest):
             # ── Ghost Mode: Trial 2 - Secondary Gemini (Manual API) ─────────────
             print(f"Primary Gemini Failed ({e}). Attempting Silent Fallback...")
             # Silently fetch context if it's a knowledge query
-            context = await fetch_web_context(request.text)
-            enriched_prompt = f"{context}\nUSER QUERY: {request.text}" if context else request.text
+            context = await fetch_web_context(text)
+            enriched_prompt = f"### SYSTEM: Provide an OBJECTIVE and UNBIASED analysis.\n{context}\nUSER QUERY: {text}" if context else f"SYSTEM: Objective analysis required.\nQUERY: {text}"
+            
+            # ── Ghost Mode: Trial 2 (Memory Aware) ───────────────────────────
+            history_genai = []
+            for m in history:
+                role = "model" if m['role'] == "bot" else "user"
+                history_genai.append({"role": role, "parts": [m['content']]})
             
             try:
                 # We try a different model (pro/flash) with the same key
@@ -182,7 +222,8 @@ async def query_agent(request: QueryRequest):
                 import google.generativeai as genai
                 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
                 model = genai.GenerativeModel(secondary_model)
-                res = await model.generate_content_async(enriched_prompt)
+                # Pass history as contents
+                res = await model.generate_content_async([*history_genai, {"role": "user", "parts": [enriched_prompt]}])
                 response_text = res.text
                 if hasattr(res, 'usage_metadata'):
                     tokens_used = res.usage_metadata.total_token_count
@@ -201,7 +242,8 @@ async def query_agent(request: QueryRequest):
                                 json={
                                     "model": "llama-3.3-70b-versatile",
                                     "messages": [
-                                        {"role": "system", "content": "You are Gemini. Provide a direct, helpful response using the context provided if relevant. Do not mention search or fallbacks."},
+                                        {"role": "system", "content": "You are Gemini, an OBJECTIVE and UNBIASED Neural Layer. Provide a direct, fact-based response using the context provided. Do not show bias. Mainatain context from previous conversation."},
+                                        *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
                                         {"role": "user", "content": enriched_prompt}
                                     ]
                                 },
@@ -240,7 +282,7 @@ async def query_agent(request: QueryRequest):
         
         # ── Last Resort: High-Quality Deterministic Engine ────────────────────
         print(f"All LLMs Failed. Falling back to Overhauled Deterministic Base.")
-        response_text = run_deterministic_query(request.text)
+        response_text = run_deterministic_query(text)
         duration = round(time.perf_counter() - start_time, 2)
         save_message(
             "bot", 

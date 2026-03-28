@@ -4,8 +4,44 @@ from google.adk.tools import MCPToolset
 from google.adk.tools.mcp_tool.mcp_toolset import StreamableHTTPConnectionParams
 from .database import add_task, get_tasks, add_note, get_notes
 from .career_tools import suggest_skills, suggest_projects, resume_feedback, career_path_guide
+import httpx
+import json
 
-# --- TOOLS ---
+# --- NEURAL TOOLS ---
+
+def generate_visualization(concept: str) -> str:
+    """Generates a high-fidelity visual representation of a concept or object.
+    
+    Args:
+        concept: The subject or concept to visualize.
+    """
+    api_key = os.environ.get("TAVILY_API_KEY")
+    if not api_key:
+        return "⚠️ Neural Visualization Layer Offline (Missing API Key)."
+    
+    try:
+        # Use Tavily to find high-quality images for the concept
+        with httpx.Client(timeout=10.0) as client:
+            res = client.post(
+                "https://api.tavily.com/search",
+                json={
+                    "api_key": api_key,
+                    "query": f"high fidelity cinematic 4k illustration of {concept}",
+                    "include_images": True,
+                    "max_results": 1
+                }
+            )
+            if res.status_code == 200:
+                images = res.json().get("images", [])
+                if images:
+                    img_url = images[0]
+                    return f"### [NEURAL VISUALIZATION: {concept}]\n![{concept}]({img_url})\n\n> *Image sourced from real-time neural search.*"
+    except Exception as e:
+        print(f"Visualization Failed: {e}")
+    
+    return "⚠️ Neural Visualization Encountered a Signal Error. Please try again."
+
+# --- TASK TOOLS ---
 
 def create_task(title: str, description: str = None, due_date: str = None) -> str:
     """Creates a new task in the personal task manager.
@@ -61,7 +97,7 @@ task_agent = Agent(
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
     description="Specialist for managing personal tasks and to-do lists.",
     instruction=(
-        "You are a meticulous Task Manager. Your job is to help the user stay organized. "
+        "You are a meticulous, UNBIASED Task Manager. Your job is to help the user stay organized without any personal or systemic bias. "
         "Use create_task to add items and list_tasks to review them. Always confirm "
         "when a task is added and provide clear summaries."
     ),
@@ -73,8 +109,9 @@ info_agent = Agent(
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
     description="Specialist for note-taking and information retrieval.",
     instruction=(
-        "You are a Knowledge Assistant. Help the user remember important details by "
-        "using take_note and read_notes. Organise information logically and highlight key points."
+        "You are a Knowledge Assistant. You operate with absolute NEUTRALITY and objectivity. "
+        "Help the user remember important details by using take_note and read_notes. "
+        "Organise information logically and highlight key points without bias."
     ),
     tools=[take_note, read_notes]
 )
@@ -124,9 +161,9 @@ career_agent = Agent(
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
     description="Specialist for career guidance, resume feedback, and skill suggestions.",
     instruction=(
-        "You are the Career Strategist of Assistant AI. Help the user optimize their "
-        "professional path using suggest_skills, suggest_projects, resume_feedback, and career_path_guide. "
-        "Provide insightful, high-level feedback and structured roadmaps."
+        "You are the Career Strategist of Assistant AI. Provide strictly UNBIASED and OBJECTIVE career guidance. "
+        "Help the user optimize their professional path using suggest_skills, suggest_projects, resume_feedback, and career_path_guide. "
+        "Provide insightful, high-level feedback and structured roadmaps based strictly on market data and facts."
     ),
     tools=[suggest_skills, suggest_projects, resume_feedback, career_path_guide]
 )
@@ -139,23 +176,25 @@ assistant_root = Agent(
     description="Personal AI Assistant orchestrator for tasks, schedules, and information.",
     sub_agents=[task_agent, info_agent, schedule_agent, career_agent],
     instruction="""
-You are the **Assistant AI Orchestrator**. Your role is to coordinate specialized sub-agents to help the user manage their personal and professional life.
+You are the **Assistant AI Orchestrator**. Your role is to coordinate specialized sub-agents while maintaining 100% UNBIASED and NEUTRAL status.
 
 ### 🌟 Core Capabilities:
-- **Greetings & General Chat**: Respond naturally to greetings ("hello", "how are you?") and general questions about your capabilities.
-- **Task Management**: For creating/listing tasks → Route to **task_agent**.
-- **Information & Notes**: For taking notes or retrieving info → Route to **info_agent**.
-- **Scheduling**: For events or checking calendar → Route to **schedule_agent**.
-- **Career Growth**: For career advice, resumes, or skill suggestions → Route to **career_agent**.
+- **Greetings & General Chat**: Respond naturally and neutrally.
+- **Task Management**: For tasks → Route to **task_agent**.
+- **Information & Notes**: For notes → Route to **info_agent**.
+- **Scheduling**: For events → Route to **schedule_agent**.
+- **Career Growth**: For career advice → Route to **career_agent**.
+- **Visualization**: If the user asks for an image, to illustrate a concept, or to see something → USE **generate_visualization**.
 
-### 🛠️ Routing Principles:
-1.  **Direct Response**: If the user is just saying hello or asking what you can do, respond directly with a warm, professional greeting and a summary of your features.
-2.  **Delegation**: If the user has a specific request, delegate immediately to the appropriate specialist.
-3.  **Hybrid Requests**: Orchestrate multiple agents if a query covers multiple domains.
+### ⚖️ Neutral Engine Protocol:
+- Provide objective, fact-based analysis at all times.
+- Avoid social, political, or personal bias. 
+- Present all sides of complex issues fairly if asked.
 
 ### ✨ Response Style:
 - Be **concise**, **professional**, and **premium**.
-- Use **Markdown** and **Emojis** (📋, 📅, 💡, 🏅).
-- Always end with a helpful next step or alternative suggestion.
+- Use **Markdown** (Images, Tables, Lists) and **Emojis**.
+- Support **Multimodal Analysis**: You can process any files the user provides (PDF, Video, Images) via your multimodal neural layer.
 """
+    ,tools=[generate_visualization]
 )

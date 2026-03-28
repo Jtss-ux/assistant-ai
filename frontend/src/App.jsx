@@ -3,7 +3,8 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { 
   Orbit, ArrowUpRight, Play, ChevronDown, 
   Layers, Zap, Cpu, Shield, Wifi, Users,
-  MessageSquare, Layout, Sparkles, Send
+  MessageSquare, Layout, Sparkles, Send,
+  Paperclip, X
 } from 'lucide-react';
 import { marked } from 'marked';
 import { clsx } from 'clsx';
@@ -372,9 +373,11 @@ const IntelligenceDomains = () => (
 const AssistantChat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [liveDuration, setLiveDuration] = useState(0);
   const scrollRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     let interval;
@@ -402,17 +405,29 @@ const AssistantChat = () => {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() && !selectedFile) return;
     const userMsg = input;
+    const fileToUpload = selectedFile;
+    
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    setSelectedFile(null);
+    setMessages(prev => [...prev, { 
+      role: 'user', 
+      content: userMsg,
+      file: fileToUpload ? fileToUpload.name : null 
+    }]);
     setIsTyping(true);
 
     try {
+      const formData = new FormData();
+      formData.append('text', userMsg);
+      if (fileToUpload) {
+        formData.append('file', fileToUpload);
+      }
+
       const response = await fetch('/query', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: userMsg })
+        body: formData
       });
       const data = await response.json();
       setMessages(prev => [...prev, { 
@@ -449,7 +464,7 @@ const AssistantChat = () => {
           </div>
         </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-10 space-y-8 scroll-smooth">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-10 space-y-8 scroll-smooth scrollbar-hide">
           {messages.map((msg, i) => (
             <motion.div 
               key={i}
@@ -457,12 +472,20 @@ const AssistantChat = () => {
               animate={{ opacity: 1, y: 0 }}
               className={cn("flex flex-col max-w-[85%]", msg.role === 'user' ? "ml-auto items-end" : "items-start")}
             >
-              {msg.agent && <span className="text-[10px] uppercase tracking-widest text-indigo-400 font-bold mb-2">{msg.agent.replace('_', ' ')}</span>}
+              {msg.agent && <span className="text-[10px] uppercase tracking-widest text-indigo-400 font-bold mb-2">{msg.agent.replace('_', ' ')} System</span>}
               <div className={cn(
-                "p-6 rounded-[2rem]",
+                "p-6 rounded-[2rem] group",
                 msg.role === 'user' ? "bg-indigo-600 text-white rounded-br-none" : "liquid-glass rounded-bl-none text-white/90"
               )}>
-                <div className="prose prose-invert max-w-none text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} />
+                {msg.file && (
+                  <div className="mb-3 px-3 py-1.5 bg-black/20 rounded-xl flex items-center gap-2 text-[10px] font-mono text-white/60 w-fit">
+                    <Paperclip className="w-3 h-3" /> {msg.file}
+                  </div>
+                )}
+                <div 
+                  className="prose prose-invert max-w-none text-sm leading-relaxed" 
+                  dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }} 
+                />
                 {msg.role === 'bot' && msg.duration !== undefined && (
                   <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-4 text-[9px] uppercase tracking-[0.2em] font-mono text-white/20">
                     <span>{msg.duration}s</span>
@@ -476,11 +499,11 @@ const AssistantChat = () => {
             </motion.div>
           ))}
           {isTyping && (
-            <div className="flex flex-col items-start gap-4 p-6 liquid-glass rounded-[2rem] w-64">
+            <div className="flex flex-col items-start gap-4 p-6 liquid-glass rounded-[2rem] w-64 border border-white/5">
               <div className="flex gap-2">
-                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" />
-                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.2s]" />
-                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce [animation-delay:0.4s]" />
+                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" />
+                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0.4s]" />
               </div>
               <div className="text-[9px] uppercase tracking-[0.2em] font-mono text-indigo-400/60 animate-pulse">
                 Neural Mapping: {liveDuration.toFixed(1)}s
@@ -489,8 +512,31 @@ const AssistantChat = () => {
           )}
         </div>
 
-        <div className="p-8 bg-white/5 h-28 border-t border-white/5">
-          <div className="liquid-glass rounded-2xl flex items-center pr-2 focus-within:ring-1 ring-indigo-500/50 transition-all">
+        <div className="p-8 bg-white/5 min-h-28 border-t border-white/5">
+          {selectedFile && (
+            <div className="mb-4 flex items-center gap-3 animate-in slide-in-from-bottom-2 duration-300">
+              <div className="px-4 py-2 liquid-glass rounded-2xl flex items-center gap-3 text-[10px] font-bold tracking-widest uppercase border border-white/10 text-white/60">
+                <Paperclip className="w-3 h-3 text-indigo-400" />
+                {selectedFile.name}
+                <button onClick={() => setSelectedFile(null)} className="hover:text-red-400 transition-colors">
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="liquid-glass rounded-[2rem] flex items-center pr-2 focus-within:ring-1 ring-indigo-500/50 transition-all border border-white/5">
+            <input 
+              type="file" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={(e) => setSelectedFile(e.target.files[0])}
+            />
+            <button 
+              onClick={() => fileInputRef.current.click()}
+              className="p-5 text-white/30 hover:text-white transition-colors"
+            >
+              <Paperclip className="w-5 h-5" />
+            </button>
             <input 
               type="text" 
               value={input}
@@ -501,10 +547,10 @@ const AssistantChat = () => {
             />
             <button 
               onClick={handleSend}
-              disabled={!input.trim()}
-              className="p-3 rounded-xl bg-white text-black hover:bg-indigo-100 disabled:opacity-30 transition-all"
+              disabled={!input.trim() && !selectedFile}
+              className="px-8 py-4 m-1 rounded-2xl bg-white text-black hover:bg-white/90 disabled:opacity-20 transition-all font-bold uppercase tracking-widest text-[10px]"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 mr-2 inline" /> Send
             </button>
           </div>
         </div>
