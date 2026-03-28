@@ -1,11 +1,12 @@
 import os
-from typing import Optional
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request, Form, File, UploadFile
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from starlette.applications import Starlette
+from starlette.routing import Route, Mount
+from starlette.requests import Request
+from starlette.responses import JSONResponse, FileResponse, PlainTextResponse
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.staticfiles import StaticFiles
 import json
 import httpx
 import time
@@ -19,6 +20,14 @@ from assistant_agent import assistant_root, init_db
 from assistant_agent.database import save_message, get_chat_history, get_tasks, get_notes
 from assistant_agent.mcp_server import mcp, get_mcp_app  # FastMCP instance + safe app getter
 from assistant_agent.deterministic_agent import run_deterministic_query
+
+# --- INITIALISE DATABASE ---
+init_db()
+
+# --- SETUP MCP ENVIRONMENT ---
+port = int(os.environ.get("PORT", 10000))
+if not os.environ.get("MCP_SERVER_URL"):
+    os.environ["MCP_SERVER_URL"] = f"http://localhost:{port}/mcp/sse"
 
 # --- TAVILY WEB SEARCH ---
 async def fetch_web_context(query: str) -> str:
@@ -53,112 +62,63 @@ async def fetch_web_context(query: str) -> str:
         pass
     return ""
 
-# --- INITIALISE DATABASE ---
-# Ensure database and tables exist at startup
-init_db()
+# ── Endpoints ───────────────────────────────────────────────────────────────
 
-# --- SETUP MCP ENVIRONMENT ---
-port = int(os.environ.get("PORT", 10000))
-if not os.environ.get("MCP_SERVER_URL"):
-    # With FastMCP mounted at /mcp, the SSE endpoint is /mcp/sse
-    os.environ["MCP_SERVER_URL"] = f"http://localhost:{port}/mcp/sse"
-
-# ── FastAPI app ───────────────────────────────────────────────────────────────
-app = FastAPI(
-    title="Multi-Agent Personal Assistant API",
-    description="ADK-powered Assistant with Database storage and FastMCP integration.",
-    version="1.2.5",
-)
-
-# --- MIDDLEWARE ---
-# Enable CORS for browser-side interactions in production
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# --- MOUNT FRONTEND ---
-# Mount the React assets directory
-if os.path.exists("frontend/dist/assets"):
-    app.mount("/assets", StaticFiles(directory="frontend/dist/assets"), name="assets")
-
-# Safely mount FastMCP SSE app (only if available in this mcp version)
-_mcp_app = get_mcp_app()
-if _mcp_app is not None:
-    app.mount("/mcp", _mcp_app)
-    print("✅ MCP SSE endpoint mounted at /mcp")
-else:
-    print("ℹ️ MCP SSE not mounted (FastMCP SSE API unavailable in this version)")
-
-# --- QUERY API ---
-class QueryRequest(BaseModel):
-    text: str
-
-class QueryResponse(BaseModel):
-    response: str
-    metadata: dict = {}
-
-@app.get("/")
-@app.head("/")
-async def root():
+async def root(request: Request):
     """Serve the modern Cinematic React UI."""
     if os.path.exists("frontend/dist/index.html"):
         return FileResponse("frontend/dist/index.html")
     return FileResponse("index.html")
 
-@app.get("/health")
-async def health_check():
+async def health_check(request: Request):
     """Robust health check for Render/Cloud Run deployments."""
-    return {
+    return JSONResponse({
         "status": "healthy", 
         "service": "assistant-ai-unified", 
         "mcp": "active",
         "port": port
-    }
+    })
 
-@app.get("/ping")
-async def ping():
+async def ping(request: Request):
     """Ultra-lightweight endpoint for Render keep-alive heartbeats."""
-    return "pong"
+    return PlainTextResponse("pong")
 
-@app.get("/history")
-async def chat_history():
+async def chat_history(request: Request):
     """Retrieve persistent conversation history."""
-    return {"history": get_chat_history()}
+    return JSONResponse({"history": get_chat_history()})
 
-@app.get("/dashboard")
-async def dashboard_data():
+async def dashboard_data(request: Request):
     """Retrieve overview data for the side-panel."""
-    return {
+    return JSONResponse({
         "tasks": get_tasks(status="pending")[:5],
         "notes": get_notes()[:3],
         "system": {
             "model": os.environ.get("MODEL", "gemini-2.0-flash"),
             "mcp": "online"
         }
-    }
+    })
 
-@app.post("/query", response_model=QueryResponse)
-async def query_agent(
-    text: str = Form(...),
-    file: Optional[UploadFile] = File(None)
-):
+async def query_agent(request: Request):
     """Run a query through the Personal Assistant ADK agent with Multimodal support."""
     try:
+        # Starlette manual form parsing
+        form = await request.form()
+        text = form.get("text")
+        file = form.get("file")
+
+        if not text:
+            return JSONResponse({"detail": "Missing 'text' field in form data."}, status_code=400)
+
         from google.adk.runners import InMemoryRunner
         from google.genai import types as genai_types
         import google.generativeai as raw_genai
 
         # ── Cognitive Memory Layer: Global History ──────────────────────────
-        # Reduce limit for better stability on start
         history = get_chat_history(limit=5)
         parts = [genai_types.Part(text=text)]
         
         # ── Multimodal Neural Mapping: File Upload ───────────────────────────
-        if file:
+        if file and hasattr(file, 'filename') and file.filename:
             temp_path = f"tmp_{file.filename}"
             with open(temp_path, "wb") as buffer:
                 buffer.write(await file.read())
@@ -292,15 +252,15 @@ async def query_agent(
                 tokens=tokens_used, 
                 tps=tps
             )
-            return QueryResponse(
-                response=response_text, 
-                metadata={
+            return JSONResponse({
+                "response": response_text, 
+                "metadata": {
                     "agent": agent_used,
                     "duration": duration,
                     "tokens": tokens_used,
                     "tps": tps
                 }
-            )
+            })
         
         # ── Last Resort: High-Quality Deterministic Engine ────────────────────
         print(f"All LLMs Failed. Falling back to Overhauled Deterministic Base.")
@@ -314,20 +274,48 @@ async def query_agent(
             tokens=len(response_text) // 4, 
             tps=0
         )
-        return QueryResponse(
-            response=response_text, 
-            metadata={
+        return JSONResponse({
+            "response": response_text, 
+            "metadata": {
                 "agent": "deterministic_engine",
                 "duration": duration,
                 "tokens": len(response_text) // 4,
                 "tps": 0
             }
-        )
+        })
 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse({"detail": str(e)}, status_code=500)
+
+
+# ── App Assembly ────────────────────────────────────────────────────────────
+
+routes = [
+    Route("/", root, methods=["GET", "HEAD"]),
+    Route("/health", health_check, methods=["GET"]),
+    Route("/ping", ping, methods=["GET"]),
+    Route("/history", chat_history, methods=["GET"]),
+    Route("/dashboard", dashboard_data, methods=["GET"]),
+    Route("/query", query_agent, methods=["POST"]),
+]
+
+if os.path.exists("frontend/dist/assets"):
+    routes.append(Mount("/assets", StaticFiles(directory="frontend/dist/assets"), name="assets"))
+
+_mcp_app = get_mcp_app()
+if _mcp_app is not None:
+    routes.append(Mount("/mcp", _mcp_app))
+    print("✅ MCP SSE endpoint mounted at /mcp")
+else:
+    print("ℹ️ MCP SSE not mounted (FastMCP SSE API unavailable in this version)")
+
+middleware = [
+    Middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+]
+
+app = Starlette(debug=False, routes=routes, middleware=middleware)
 
 if __name__ == "__main__":
     import uvicorn
