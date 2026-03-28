@@ -13,6 +13,7 @@ load_dotenv()
 # We import from the package; this ensures all internal relative imports in the 
 # assistant_agent package resolve correctly.
 from assistant_agent import assistant_root, init_db
+from assistant_agent.database import save_message, get_chat_history, get_tasks, get_notes
 from assistant_agent.mcp_server import mcp  # This is the FastMCP instance
 from assistant_agent.deterministic_agent import run_deterministic_query
 
@@ -81,6 +82,7 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     response: str
+    metadata: dict = {}
 
 @app.get("/")
 async def root():
@@ -95,6 +97,28 @@ async def health_check():
         "service": "assistant-ai-unified", 
         "mcp": "active",
         "port": port
+    }
+
+@app.get("/ping")
+async def ping():
+    """Ultra-lightweight endpoint for Render keep-alive heartbeats."""
+    return "pong"
+
+@app.get("/history")
+async def chat_history():
+    """Retrieve persistent conversation history."""
+    return {"history": get_chat_history()}
+
+@app.get("/dashboard")
+async def dashboard_data():
+    """Retrieve overview data for the side-panel."""
+    return {
+        "tasks": get_tasks(status="pending")[:5],
+        "notes": get_notes()[:3],
+        "system": {
+            "model": os.environ.get("MODEL", "gemini-2.0-flash"),
+            "mcp": "online"
+        }
     }
 
 @app.post("/query", response_model=QueryResponse)
@@ -114,7 +138,12 @@ async def query_agent(request: QueryRequest):
             parts=[genai_types.Part(text=request.text)],
         )
 
+        # Save user message
+        save_message("user", request.text)
+
         response_text = ""
+        agent_used = "orchestrator"
+        
         # ── Ghost Mode: Trial 1 - Primary Gemini (ADK) ────────────────────────
         try:
             async for event in runner.run_async(
@@ -122,6 +151,8 @@ async def query_agent(request: QueryRequest):
                 session_id=session.id,
                 new_message=new_msg,
             ):
+                if event.agent_name:
+                    agent_used = event.agent_name
                 if event.content and event.content.parts:
                     for part in event.content.parts:
                         if hasattr(part, "text") and part.text:
@@ -166,14 +197,16 @@ async def query_agent(request: QueryRequest):
                         print(f"Groq Failed: {e3}")
 
         # ── Ghost Mode: Final Result Preparation ──────────────────────────────
+        # Save Bot Response
         if response_text:
-            return QueryResponse(response=response_text)
+            save_message("bot", response_text)
+            return QueryResponse(response=response_text, metadata={"agent": agent_used})
         
         # ── Last Resort: High-Quality Deterministic Engine ────────────────────
         print(f"All LLMs Failed. Falling back to Overhauled Deterministic Base.")
         response_text = run_deterministic_query(request.text)
-        # Note: No "🔥 EMERGENCY" header here; preserving the seamless experience
-        return QueryResponse(response=response_text)
+        save_message("bot", response_text)
+        return QueryResponse(response=response_text, metadata={"agent": "deterministic_engine"})
 
     except Exception as e:
         import traceback

@@ -6,10 +6,6 @@ from pydantic import BaseModel
 # --- CONFIGURATION ---
 DB_PATH = os.environ.get("DATABASE_PATH", "assistant.db")
 
-# NOTE: On platforms like Render or Cloud Run, the local filesystem is ephemeral.
-# To keep your data across restarts, you must mount a Persistent Disk
-# and set DATABASE_PATH to a path on that disk (e.g., /app/data/assistant.db).
-
 class Task(BaseModel):
     id: Optional[int] = None
     title: str
@@ -30,6 +26,14 @@ def init_db():
         
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            role TEXT NOT NULL,
+            content TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -87,6 +91,22 @@ def get_notes() -> List[dict]:
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM notes ORDER BY timestamp DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+def save_message(role: str, content: str):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO messages (role, content) VALUES (?, ?)", (role, content))
+    conn.commit()
+    conn.close()
+
+def get_chat_history(limit: int = 50) -> List[dict]:
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM messages ORDER BY timestamp ASC LIMIT ?", (limit,))
     rows = cursor.fetchall()
     conn.close()
     return [dict(row) for row in rows]
