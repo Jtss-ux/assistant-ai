@@ -186,10 +186,6 @@ const Hero = () => {
           transition={{ duration: 1, ease: EASE, delay: 1 }}
           className="flex flex-col md:flex-row items-center justify-center gap-6"
         >
-          <button className="flex items-center gap-3 px-8 py-4 hover:text-indigo-300 transition-colors uppercase tracking-widest text-sm font-semibold">
-            <span className="p-3 liquid-glass rounded-full"><Play className="w-4 h-4 fill-current" /></span>
-            Watch Orchestration
-          </button>
         </motion.div>
       </motion.div>
     </header>
