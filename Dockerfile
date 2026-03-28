@@ -12,12 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source
+# Copy application source (includes pre-built frontend/dist)
 COPY . .
 
 # Render injects PORT at runtime (defaults to 10000); do NOT hardcode it here.
 EXPOSE 10000
 ENV PYTHONUNBUFFERED=1
 
-# Use custom entry point to run both the Agent and the MCP server
+# Start the FastAPI server
 CMD ["python", "main.py"]

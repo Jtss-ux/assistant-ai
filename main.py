@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, Form, File, UploadFile
 from fastapi.responses import FileResponse
@@ -16,7 +17,7 @@ load_dotenv()
 # assistant_agent package resolve correctly.
 from assistant_agent import assistant_root, init_db
 from assistant_agent.database import save_message, get_chat_history, get_tasks, get_notes
-from assistant_agent.mcp_server import mcp  # This is the FastMCP instance
+from assistant_agent.mcp_server import mcp, get_mcp_app  # FastMCP instance + safe app getter
 from assistant_agent.deterministic_agent import run_deterministic_query
 
 # --- TAVILY WEB SEARCH ---
@@ -84,8 +85,13 @@ app.add_middleware(
 if os.path.exists("frontend/dist/assets"):
     app.mount("/assets", StaticFiles(directory="frontend/dist/assets"), name="assets")
 
-# FastMCP provides an sse_app that can be mounted into FastAPI/Starlette
-app.mount("/mcp", mcp.sse_app())
+# Safely mount FastMCP SSE app (only if available in this mcp version)
+_mcp_app = get_mcp_app()
+if _mcp_app is not None:
+    app.mount("/mcp", _mcp_app)
+    print("✅ MCP SSE endpoint mounted at /mcp")
+else:
+    print("ℹ️ MCP SSE not mounted (FastMCP SSE API unavailable in this version)")
 
 # --- QUERY API ---
 class QueryRequest(BaseModel):
@@ -138,7 +144,7 @@ async def dashboard_data():
 @app.post("/query", response_model=QueryResponse)
 async def query_agent(
     text: str = Form(...),
-    file: UploadFile = File(None)
+    file: Optional[UploadFile] = File(None)
 ):
     """Run a query through the Personal Assistant ADK agent with Multimodal support."""
     try:

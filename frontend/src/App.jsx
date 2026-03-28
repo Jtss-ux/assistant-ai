@@ -430,6 +430,14 @@ const AssistantChat = () => {
         method: 'POST',
         body: formData
       });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        const errMsg = errData?.detail || `Server error (${response.status})`;
+        setMessages(prev => [...prev, { role: 'bot', content: `⚠️ ${errMsg}` }]);
+        return;
+      }
+
       const data = await response.json();
       setMessages(prev => [...prev, { 
         role: 'bot', 

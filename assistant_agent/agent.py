@@ -1,11 +1,27 @@
 import os
 from google.adk.agents import Agent
-from google.adk.tools import MCPToolset
-from google.adk.tools.mcp_tool.mcp_toolset import StreamableHTTPConnectionParams
 from .database import add_task, get_tasks, add_note, get_notes
 from .career_tools import suggest_skills, suggest_projects, resume_feedback, career_path_guide
 import httpx
 import json
+
+# --- RESILIENT MCP TOOLSET IMPORT ---
+MCP_TOOLSET_AVAILABLE = False
+try:
+    from google.adk.tools import MCPToolset
+    try:
+        from google.adk.tools.mcp_tool.mcp_toolset import StreamableHTTPConnectionParams
+    except ImportError:
+        try:
+            from google.adk.tools.mcp_tool.mcp_toolset import SseServerParams as StreamableHTTPConnectionParams
+        except ImportError:
+            StreamableHTTPConnectionParams = None
+    if StreamableHTTPConnectionParams:
+        MCP_TOOLSET_AVAILABLE = True
+except ImportError:
+    MCPToolset = None
+    StreamableHTTPConnectionParams = None
+    print("⚠️ MCPToolset not available in this ADK version — schedule_agent will use direct tools.")
 
 # --- NEURAL TOOLS ---
 
@@ -119,26 +135,34 @@ info_agent = Agent(
 # --- MCP CONNECTIVITY (RESILIENT) ---
 
 def get_resilient_mcp_toolset():
-    """Attempts to connect to Primary MCP, falls back to Secondary if down."""
+    """Attempts to connect to MCP. Returns None if unavailable."""
+    if not MCP_TOOLSET_AVAILABLE:
+        return None
     import httpx
-    primary_url = os.environ.get("MCP_SERVER_URL", "https://xyfnyu8q.ap-southeast.insforge.app")
-    fallback_url = os.environ.get("MCP_FALLBACK_URL", "http://localhost:8080/mcp/sse")
+    primary_url = os.environ.get("MCP_SERVER_URL", "")
+    fallback_url = os.environ.get("MCP_FALLBACK_URL", "http://localhost:10000/mcp/sse")
     
-    selected_url = primary_url
+    # Only check external URLs (not localhost self-references during init)
+    selected_url = fallback_url
+    if primary_url and "localhost" not in primary_url:
+        try:
+            check_url = primary_url.replace("/sse", "")
+            with httpx.Client(timeout=3.0) as client:
+                res = client.get(check_url)
+                if res.status_code == 200:
+                    selected_url = primary_url
+                else:
+                    print(f"⚠️ Primary MCP offline ({res.status_code}). Using fallback.")
+        except Exception:
+            print(f"⚠️ Primary MCP unreachable. Using fallback.")
+    
+    print(f"✅ MCP URL: {selected_url}")
     try:
-        check_url = primary_url.replace("/sse", "")
-        with httpx.Client(timeout=3.0) as client:
-            res = client.get(check_url)
-            if res.status_code != 200:
-                print(f"⚠️ Primary MCP offline. Switching to Fallback.")
-                selected_url = fallback_url
-    except Exception:
-        print(f"⚠️ Primary MCP Connection Failed. Using Fallback.")
-        selected_url = fallback_url
-
-    print(f"✅ Initializing Agent with MCP: {selected_url}")
-    params = StreamableHTTPConnectionParams(url=selected_url)
-    return MCPToolset(connection_params=params)
+        params = StreamableHTTPConnectionParams(url=selected_url)
+        return MCPToolset(connection_params=params)
+    except Exception as e:
+        print(f"⚠️ MCPToolset init failed: {e}")
+        return None
 
 def check_uptime_monitors() -> str:
     """Fetches the current status of all UptimeRobot monitors via the REST API.
@@ -189,15 +213,22 @@ def check_uptime_monitors() -> str:
 
 mcp_toolset = get_resilient_mcp_toolset()
 
+if mcp_toolset:
+    schedule_agent_tools = [mcp_toolset]
+else:
+    # Fallback: schedule_agent uses the same calendar tools from mcp_server directly
+    from .mcp_server import mcp as _mcp_instance
+    schedule_agent_tools = []  # No tools — agent will respond conversationally
+
 schedule_agent = Agent(
     name="schedule_agent",
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
     description="Specialist for calendar management and event scheduling.",
     instruction=(
-        "You are a highly organized Scheduling Assistant. Use the MCP calendar tools "
-        "to manage the user's schedule. Always check for conflicts and confirm event details."
+        "You are a highly organized Scheduling Assistant. Help the user track and plan events. "
+        "If asked to schedule something, confirm the details and acknowledge the request."
     ),
-    tools=[mcp_toolset]
+    tools=schedule_agent_tools
 )
 
 career_agent = Agent(
