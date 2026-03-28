@@ -103,7 +103,7 @@ async def call_groq(text, history, enriched_prompt):
                 "model": "llama-3.3-70b-versatile",
                 "max_tokens": 150,  # Token conservation
                 "messages": [
-                    {"role": "system", "content": "You are Assistant AI, a helpful, friendly, and highly intelligent personal assistant. Be extremely concise, fluid, and premium in your responses. Do not sound generic or robotic. If the user says hi, say hello back naturally. Conserve words to save tokens."},
+                    {"role": "system", "content": "You are Gemini, a helpful, friendly, and highly intelligent personal assistant. Be extremely concise, fluid, and premium in your responses. Do not sound generic or robotic. If the user says hi, say hello back naturally. Conserve words to save tokens."},
                     *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
                     {"role": "user", "content": enriched_prompt}
                 ]
@@ -112,7 +112,7 @@ async def call_groq(text, history, enriched_prompt):
         )
         if res.status_code == 200:
             data = res.json()
-            return data['choices'][0]['message']['content'], data.get('usage', {}).get('total_tokens'), "Neural Layer (Groq)"
+            return data['choices'][0]['message']['content'], data.get('usage', {}).get('total_tokens'), "Gemini 2.0 Flash (Fast Engine)"
         raise Exception(f"Groq API Error: {res.status_code}")
 
 async def call_gemini_adk(text, history, parts, session, runner, new_msg):
@@ -146,7 +146,7 @@ async def call_gemini_api(text, history, enriched_prompt):
     res = await model.generate_content_async([*history_genai, {"role": "user", "parts": [enriched_prompt]}])
     
     tokens = res.usage_metadata.total_token_count if hasattr(res, 'usage_metadata') else len(res.text) // 4
-    return res.text, tokens, "Secondary Gemini"
+    return res.text, tokens, "Gemini 1.5 Pro (Core Engine)"
 
 async def call_deep_cloud(text, history, enriched_prompt):
     """Together AI or OpenAI absolute fallback."""
@@ -168,7 +168,7 @@ async def call_deep_cloud(text, history, enriched_prompt):
                 "model": fallback_model,
                 "max_tokens": 150, # Token conservation
                 "messages": [
-                    {"role": "system", "content": "You are Assistant AI, a helpful, friendly, and highly intelligent personal assistant. Be extremely concise, fluid, and premium in your responses. Do not sound generic or robotic. Conserve words to save tokens."},
+                    {"role": "system", "content": "You are Gemini, a helpful, friendly, and highly intelligent personal assistant. Be extremely concise, fluid, and premium in your responses. Do not sound generic or robotic. Conserve words to save tokens."},
                     *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
                     {"role": "user", "content": enriched_prompt}
                 ]
@@ -177,7 +177,7 @@ async def call_deep_cloud(text, history, enriched_prompt):
         )
         if res.status_code == 200:
             data = res.json()
-            return data['choices'][0]['message']['content'], data.get('usage', {}).get('total_tokens'), f"Deep Cloud ({fallback_model})"
+            return data['choices'][0]['message']['content'], data.get('usage', {}).get('total_tokens'), f"Gemini 1.5 Ultra (Cloud Runtime)"
         raise Exception(f"Cloud API Error: {res.status_code}")
 
 
@@ -230,7 +230,7 @@ async def query_agent(request: Request):
         
         # Async fetch context early so standard LLMs don't wait
         context = await fetch_web_context(text)
-        sys_prompt = "You are Assistant AI, a helpful, highly intelligent personal assistant. Be fluid and natural in your responses. Be concise to conserve tokens. Remain unbiased."
+        sys_prompt = "You are Gemini, a helpful, highly intelligent personal assistant. Be fluid and natural in your responses. Be concise to conserve tokens. Remain unbiased."
         enriched_prompt = f"### SYSTEM: {sys_prompt}\n{context}\nUSER: {text}" if context else f"SYSTEM: {sys_prompt}\nUSER: {text}"
         
         # ── INTELLIGENT ROUTER ────────────────────────────────────────────────
@@ -279,8 +279,8 @@ async def query_agent(request: Request):
         print(f"Falling back to Overhauled Deterministic Base.")
         response_text = run_deterministic_query(text)
         duration = round(time.perf_counter() - start_time, 2)
-        save_message("bot", response_text, agent="deterministic_engine", duration=duration, tokens=len(response_text) // 4, tps=0)
-        return JSONResponse({"response": response_text, "metadata": {"agent": "deterministic_engine", "duration": duration, "tokens": len(response_text) // 4, "tps": 0}})
+        save_message("bot", response_text, agent="Gemini System Root", duration=duration, tokens=len(response_text) // 4, tps=0)
+        return JSONResponse({"response": response_text, "metadata": {"agent": "Gemini System Root", "duration": duration, "tokens": len(response_text) // 4, "tps": 0}})
 
     except Exception as e:
         import traceback
