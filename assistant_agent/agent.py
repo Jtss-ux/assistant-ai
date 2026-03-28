@@ -140,23 +140,54 @@ def get_resilient_mcp_toolset():
     params = StreamableHTTPConnectionParams(url=selected_url)
     return MCPToolset(connection_params=params)
 
-def get_uptimerobot_toolset():
-    """Connects to the official UptimeRobot MCP server."""
+def check_uptime_monitors() -> str:
+    """Fetches the current status of all UptimeRobot monitors via the REST API.
+    
+    Returns a formatted summary of all monitors with their status, uptime ratios,
+    and any recent incidents.
+    """
     api_key = os.environ.get("UPTIMEROBOT_API_KEY")
     if not api_key:
-        return None
+        return "⚠️ Uptime Guard Offline: Missing UPTIMEROBOT_API_KEY in environment."
     
-    url = "https://mcp.uptimerobot.com/mcp"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "X-MCP-Content-Format": "true"
-    }
-    print(f"✅ Initializing Uptime Guard with remote MCP: {url}")
-    params = StreamableHTTPConnectionParams(url=url, headers=headers)
-    return MCPToolset(connection_params=params)
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            res = client.post(
+                "https://api.uptimerobot.com/v2/getMonitors",
+                data={
+                    "api_key": api_key,
+                    "format": "json",
+                    "logs": "1",
+                    "response_times": "0",
+                    "custom_uptime_ratios": "7-30",
+                },
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+            if res.status_code == 200:
+                data = res.json()
+                if data.get("stat") != "ok":
+                    return f"⚠️ UptimeRobot API Error: {data.get('error', {}).get('message', 'Unknown error')}"
+                
+                monitors = data.get("monitors", [])
+                if not monitors:
+                    return "📡 No monitors configured in UptimeRobot."
+                
+                STATUS_MAP = {0: "🔇 Paused", 1: "⏳ Not checked", 2: "✅ Up", 8: "🔥 Seems down", 9: "🔴 Down"}
+                result = "## 📡 Uptime Guard Report\n\n"
+                for m in monitors:
+                    status = STATUS_MAP.get(m.get("status", -1), "❓ Unknown")
+                    ratios = m.get("custom_uptime_ratio", "N/A")
+                    result += f"### {m['friendly_name']}\n"
+                    result += f"- **Status**: {status}\n"
+                    result += f"- **URL**: `{m.get('url', 'N/A')}`\n"
+                    result += f"- **Uptime (7d / 30d)**: `{ratios}`\n\n"
+                return result
+            else:
+                return f"⚠️ UptimeRobot API returned status {res.status_code}."
+    except Exception as e:
+        return f"⚠️ Uptime Guard Error: {e}"
 
 mcp_toolset = get_resilient_mcp_toolset()
-uptime_toolset = get_uptimerobot_toolset()
 
 schedule_agent = Agent(
     name="schedule_agent",
@@ -186,11 +217,11 @@ uptime_agent = Agent(
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
     description="Specialist for system monitoring, site health, and uptime alerts.",
     instruction=(
-        "You are the Uptime Guard of Assistant AI. Monitor service availability, investigate "
-        "downtime incidents, and manage monitors using the UptimeRobot tools. Provide "
-        "accurate uptime percentages and immediate troubleshooting steps for incidents."
+        "You are the Uptime Guard of Assistant AI. Use check_uptime_monitors to fetch the "
+        "current status of all monitored services. Investigate downtime incidents, provide "
+        "accurate uptime percentages, and give immediate troubleshooting steps for any incidents."
     ),
-    tools=[uptime_toolset] if uptime_toolset else []
+    tools=[check_uptime_monitors]
 )
 
 # --- ORCHESTRATOR ---
