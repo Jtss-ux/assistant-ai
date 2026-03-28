@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>✨ Assistant AI (Unified Intelligence)</h1>
+  <h1>✨ Career AI</h1>
   <p><strong>Gen AI Academy APAC Edition — Track 1: Build and Deploy AI Agents</strong></p>
   <p>A production-ready, ultra-resilient multi-agent personal and career assistant powered by a custom Intelligent Dynamic Router, Google ADK, and an automated 5-Layer Fallback Architecture.</p>
 </div>
@@ -8,7 +8,7 @@
 
 ## 🚀 Overview
 
-**Assistant AI** goes beyond a simple LLM wrapper. Built on **Starlette** and the **Google Agent Development Kit (ADK)**, it introduces a highly intelligent "Dynamic Fast-Router" that automatically analyzes your payload and dispatches it to the most efficient AI model available, seamlessly falling back across 5 independent engine layers if an API fails—guaranteeing 100% uptime and a frictionless user experience.
+**Career AI** goes beyond a simple LLM wrapper. Built on **Starlette** and the **Google Agent Development Kit (ADK)**, it introduces a highly intelligent "Dynamic Fast-Router" that automatically analyzes your payload and dispatches it to the most efficient AI model available, seamlessly falling back across 5 independent engine layers if an API fails—guaranteeing 100% uptime and a frictionless user experience.
 
 ### 🔥 Key Innovations
 - 🧠 **Intelligent Dynamic Router:** Text-only queries are instantly routed to lightening-fast execution layers, while multimodal payloads (Images/PDFs) dynamically force visual-reasoning routing via Gemini ADK.

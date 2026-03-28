@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistant AI | Multi-Agent Orchestrator</title>
+    <title>Career AI | Your Personal Google In Your Hands</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -61,7 +61,15 @@
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .tagline {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+            margin-bottom: 1rem;
+            font-style: italic;
         }
 
         .system-status {
@@ -270,7 +278,8 @@
 <body>
     <aside>
         <div class="sidebar-header">
-            <div class="logo">Assistant AI .</div>
+            <div class="logo">Career AI ✨</div>
+            <div class="tagline">1-stop destination to ask doubts and solve them. Your personal Google in your hands.</div>
             <div class="system-status">
                 <div class="status-dot"></div>
                 Orchestrator Online
@@ -385,7 +394,7 @@
                 const res = await fetch('/history');
                 const data = await res.json();
                 if (data.history.length === 0) {
-                    addMessage("Welcome! I am your Multi-Agent Orchestrator. How can I assist you?", "bot", "assistant");
+                    addMessage("Welcome to **Career AI**! ✨\n\nI am your 1-stop destination to ask doubts and solve them. Consider me your personal Google in your hands! How can I assist you today?", "bot", "System");
                 } else {
                     data.history.forEach(msg => {
                         addMessage(msg.content, msg.role, msg.role === 'bot' ? 'agent' : null);
