@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import json
 import httpx
 
@@ -72,7 +73,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- MOUNT MCP SERVER ---
+# --- MOUNT FRONTEND ---
+# Mount the React assets directory
+if os.path.exists("frontend/dist/assets"):
+    app.mount("/assets", StaticFiles(directory="frontend/dist/assets"), name="assets")
+
 # FastMCP provides an sse_app that can be mounted into FastAPI/Starlette
 app.mount("/mcp", mcp.sse_app())
 
@@ -86,7 +91,9 @@ class QueryResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    """Serve the modern Web UI."""
+    """Serve the modern Cinematic React UI."""
+    if os.path.exists("frontend/dist/index.html"):
+        return FileResponse("frontend/dist/index.html")
     return FileResponse("index.html")
 
 @app.get("/health")
