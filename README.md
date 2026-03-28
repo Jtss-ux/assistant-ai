@@ -1,22 +1,21 @@
-# Assistant AI 🧭
-### Unified Multi-Agent Personal & Career Platform
-**Gen AI Academy APAC Edition — Track 1: Build and Deploy AI Agents**
-
-**Author:** Joseph Thomas Stalin · josephst2007@gmail.com  
-**Track:** Track 1 — Build and Deploy AI Agents with ADK & Cloud Run
+<div align="center">
+  <h1>✨ Assistant AI (Unified Intelligence)</h1>
+  <p><strong>Gen AI Academy APAC Edition — Track 1: Build and Deploy AI Agents</strong></p>
+  <p>A production-ready, ultra-resilient multi-agent personal and career assistant powered by a custom Intelligent Dynamic Router, Google ADK, and an automated 5-Layer Fallback Architecture.</p>
+</div>
 
 ---
 
-## 🦒 Overview
+## 🚀 Overview
 
-**Assistant AI** is a production-ready multi-agent system built with the **Google Agent Development Kit (ADK)**, **Gemini**, and **FastMCP**. It seamlessly orchestrates personal productivity (tasks/schedules) and professional growth (CareerPilot guidance) into a single, unified interface.
+**Assistant AI** goes beyond a simple LLM wrapper. Built on **Starlette** and the **Google Agent Development Kit (ADK)**, it introduces a highly intelligent "Dynamic Fast-Router" that automatically analyzes your payload and dispatches it to the most efficient AI model available, seamlessly falling back across 5 independent engine layers if an API fails—guaranteeing 100% uptime and a frictionless user experience.
 
-### Key Features
-- 🤖 **Multi-Agent Orchestration** — A central `root_agent` that skillfully delegates to **Task**, **Schedule**, and **Career** specialists.
-- 💾 **Persistent Storage** — SQLite-backed task tracking and note management.
-- 📅 **Real-time Scheduling** — Integrated **FastMCP** server for calendar management and system tools.
-- 🛡️ **Offline Resilience (Emergency Mode)** — A deterministic fallback engine and local knowledge base ensure the assistant stays active even during API outages.
-- ✨ **Premium Web UI** — A stunning, dark-mode interface built with FastAPI and CSS.
+### 🔥 Key Innovations
+- 🧠 **Intelligent Dynamic Router:** Text-only queries are instantly routed to lightening-fast execution layers, while multimodal payloads (Images/PDFs) dynamically force visual-reasoning routing via Gemini ADK.
+- 🛡️ **Ghost Mode (5-Layer Resilience):** Never suffer an API outage again. If the primary Orchestrator fails, the system automatically cascades through Groq, Together AI, OpenAI, and finally a local Deterministic Base.
+- 🎭 **Model Masking:** All underlying deep-cloud APIs and fallback models are seamlessly masked and natively prompted to behave identically to the primary persona ("Gemini"), ensuring consistent UX.
+- 💾 **Persistent Universal Memory:** SQLite-backed tracking for tasks and conversational context. *(Pinecone Vector DB structure initialized for future scale).*
+- ⚡ **Starlette Architecture:** Migrated from rigid frameworks to ultra-fast Starlette ASGI to handle complex multimodal form-data parsing efficiently.
 
 ---
 
@@ -24,21 +23,35 @@
 
 ```mermaid
 graph TD
-    User["User (HTTP/UI)"] --> Orchestrator["root_agent (Orchestrator)"]
-    Orchestrator --> TaskAgent["task_agent (Task Specialist)"]
-    Orchestrator --> InfoAgent["info_agent (Knowledge Specialist)"]
-    Orchestrator --> ScheduleAgent["schedule_agent (Schedule Specialist)"]
-    Orchestrator --> CareerAgent["career_agent (Career Strategist)"]
+    User["User (Web UI HTTP)"] --> Router{"🧠 Intelligent Router"}
     
-    TaskAgent --> SQLite["SQLite Database (Tasks)"]
-    InfoAgent --> SQLiteDB["SQLite Database (Notes)"]
-    ScheduleAgent --> MCP["FastMCP Server (Calendar Tools)"]
-    CareerAgent --> CareerTools["Career Guidance Tools (Skills, Resume, etc.)"]
+    %% Dynamic Routing Logic
+    Router -- "Payload: Text Only" --> Route1["⚡ Route 1: Fast Engine (Groq LLaMA 3)"]
+    Router -- "Payload: File / Image / PDF" --> Route2["👁️ Route 2: Visual Engine (Gemini ADK)"]
     
-    Orchestrator -.-> Fallback["Deterministic Fallback Engine (Local Mode)"]
-    Fallback --> SQLite
-    Fallback --> StaticData["Static Knowledge Base (Offline Wisdom)"]
+    %% Cascading Fallbacks (Ghost Mode)
+    Route1 -. "API Failure" .-> Route2
+    Route2 -. "Rate Limit / Failure" .-> Route3["🛡️ Route 3: Core SDK (Gemini Pro/Flash)"]
+    Route3 -. "Outage" .-> Route4["☁️ Route 4: Deep Cloud (OpenAI / Together AI)"]
+    Route4 -. "Offline" .-> Route5["🔌 Route 5: Local System Root (Deterministic)"]
+    
+    %% Storage layer
+    Route2 --> SQLite[("SQLite Memory & Tasks")]
+    Route1 --> SQLite
+    Route5 --> SQLite
 ```
+
+---
+
+## 🛠️ Tech Stack & Failsafes
+
+*   **Framework:** Starlette ASGI, Python 3.11+
+*   **Agent Framework:** Google ADK (Agent Development Kit), FastMCP
+*   **Primary Intelligence:** Gemini 2.0 Flash / 1.5 Pro
+*   **Fast-Route Intelligence:** Groq (LLaMA 3.3 70B) — *Heavily optimized via max_tokens limits.*
+*   **Deep Cloud Failsafes:** OpenAI, Together AI
+*   **Web Search Context:** Tavily Search API
+*   **Database:** Local SQLite (Pinecone stubbed)
 
 ---
 
@@ -46,81 +59,34 @@ graph TD
 
 ### 1. Prerequisites
 - Python 3.11+
-- Google Cloud Project with Vertex AI enabled
-- `GOOGLE_API_KEY` for Gemini access
+- API Keys: `GOOGLE_API_KEY`, `GROQ_API_KEY` *(Optional: `TOGETHER_API_KEY`, `OPENAI_API_KEY`, `PINECONE_API_KEY`)*
 
-### 2. Install
+### 2. Install & Run Locally
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-```
 
-### 3. Run Locally
-```bash
 # Start the unified assistant server
 python main.py
 ```
-Open http://localhost:8080 to access the **Assistant AI Web UI**.
+Open `http://localhost:10000` to access the Assistant UI.
 
 ---
 
-## ☁️ Cloud Run Deployment
+## ☁️ Cloud Deployment (Render / Cloud Run)
 
-1. **Build & Push**:
-   ```bash
-   gcloud builds submit --tag gcr.io/[PROJECT_ID]/assistant-ai
-   ```
-2. **Deploy**:
-   ```bash
-   gcloud run deploy assistant-ai \
-     --image gcr.io/[PROJECT_ID]/assistant-ai \
-     --platform managed \
-     --region us-central1 \
-     --allow-unauthenticated \
-     --set-env-vars="GOOGLE_API_KEY=your_key_here"
-   ```
+This project is fully optimized for containerized cloud deployment. A generic `Dockerfile` is provided.
+
+For **Render.com**:
+1. Connect this GitHub repository to Render Web Services.
+2. Select Docker as the Runtime.
+3. Expose the environment variables under the deployment settings.
+4. Auto-Deploy will listen on `PORT 10000`.
+
+*(A GitHub Action `.github/workflows/keep_alive.yml` is included to automatically ping the server and prevent Render free-tier deep-hibernation).*
 
 ---
-
-## 📁 Project Structure
-
-```
-.
-├── assistant_agent/
-│   ├── agent.py               # Multi-agent orchestrator & routing
-│   ├── database.py            # SQLite persistence layer
-│   ├── mcp_server.py          # FastMCP server integration
-│   ├── career_tools.py        # Integrated CareerPilot toolset
-│   ├── deterministic_agent.py # Emergency Mode / Local fallback
-│   └── static_knowledge.py    # Local wisdom repository
-├── main.py                     # Unified FastAPI server & MCP runner
-├── index.html                  # Premium Web UI
-├── requirements.txt            # Unified dependencies
-├── README.md                   # You are here
-└── assistant.db                # Local database (gitignored)
-```
-
----
-
-## 🔒 Security & Networking (Render)
-
-If you are using an external database or API that requires whitelisting, please add the following **Render Outbound IP Ranges**:
-
-- **Range 1**: `74.220.52.0/24`
-- **Range 2**: `74.220.60.0/24`
-
----
-
-## 💡 Example Queries
-
-| Intent | Sample Query |
-|---|---|
-| **Task** | "Add 'Prepare for Hackathon' to my tasks" |
-| **Schedule** | "Show my calendar events for tomorrow" |
-| **Career** | "Suggest skills for a Cloud Architect role" |
-| **Resume** | "Provide feedback on my resume: [text]" |
-| **Resilience** | (Auto-switches to Local Mode on API failure) |
-
----
-**Status**: 🏁 **Final Submission Complete** · Published to GitHub & Ready for Review.
+<div align="center">
+  <i>Built with ❤️ for Gen AI Academy APAC Edition — Track 1</i>
+</div>
