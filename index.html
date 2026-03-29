@@ -4,33 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Career AI | Multi-Agent Personal Assistant</title>
-    <meta name="description" content="Career AI - Your ultra-resilient multi-agent personal and career assistant powered by Google ADK with 5-layer fallback architecture.">
+    <meta name="description" content="Career AI - Ultra-resilient multi-agent personal and career assistant with grounded knowledge retrieval and 5-layer AI resilience.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        /* === LIQUID GLASS DESIGN SYSTEM === */
+
         :root {
             --primary: #818cf8;
             --primary-dark: #6366f1;
             --primary-glow: rgba(129, 140, 248, 0.35);
-            --bg: #0a0a1a;
-            --bg-secondary: #111127;
-            --card-bg: rgba(255, 255, 255, 0.035);
-            --card-bg-hover: rgba(255, 255, 255, 0.06);
-            --border: rgba(255, 255, 255, 0.07);
+            --bg: #02040A;
+            --card-bg: rgba(255, 255, 255, 0.015);
+            --border: rgba(255, 255, 255, 0.06);
             --border-active: rgba(129, 140, 248, 0.4);
             --text: #f1f5f9;
-            --text-muted: #64748b;
-            --text-secondary: #94a3b8;
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --text-secondary: rgba(255, 255, 255, 0.6);
             --accent: #c084fc;
-            --accent-warm: #f472b6;
             --success: #34d399;
-            --sidebar-width: 300px;
-            --radius: 1rem;
-            --radius-lg: 1.5rem;
+            --sidebar-width: 290px;
         }
 
+        ::selection {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        /* --- Liquid Glass Classes --- */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.015);
+            background-blend-mode: luminosity;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: none;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 4px 24px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .liquid-glass::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.05) 80%, rgba(255,255,255,0.2) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .liquid-glass-strong {
+            background: rgba(255, 255, 255, 0.02);
+            background-blend-mode: luminosity;
+            backdrop-filter: blur(50px);
+            -webkit-backdrop-filter: blur(50px);
+            border: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .liquid-glass-strong::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1.2px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.4) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* === BASE === */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -43,14 +97,15 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Barlow', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 400;
             background-color: var(--bg);
             color: var(--text);
             display: flex;
             background:
-                radial-gradient(ellipse at 0% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-                radial-gradient(ellipse at 100% 100%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 50%, rgba(30, 27, 75, 0.3) 0%, transparent 70%),
+                radial-gradient(ellipse at 15% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 90%, rgba(168, 85, 247, 0.06) 0%, transparent 45%),
+                radial-gradient(ellipse at 50% 50%, rgba(15, 15, 40, 0.4) 0%, transparent 70%),
                 var(--bg);
             background-attachment: fixed;
         }
@@ -59,62 +114,65 @@
         aside {
             width: var(--sidebar-width);
             min-width: var(--sidebar-width);
-            border-right: 1px solid var(--border);
-            background: rgba(10, 10, 26, 0.65);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            background: rgba(2, 4, 10, 0.7);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
             display: flex;
             flex-direction: column;
             z-index: 20;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-right: 1px solid rgba(255, 255, 255, 0.04);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .sidebar-header {
             padding: 1.5rem 1.25rem 1.25rem;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         }
 
         .logo {
-            font-size: 1.35rem;
-            font-weight: 700;
+            font-family: 'Instrument Serif', serif;
+            font-style: italic;
+            font-size: 1.6rem;
             background: linear-gradient(135deg, #a5b4fc 0%, #e879f9 50%, #f472b6 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.3rem;
             letter-spacing: -0.02em;
         }
 
         .tagline {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--text-muted);
-            line-height: 1.4;
-            margin-bottom: 0.75rem;
+            line-height: 1.5;
+            letter-spacing: 0.01em;
+            font-weight: 300;
         }
 
         .system-status {
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.2em;
             color: var(--text-secondary);
             font-weight: 500;
+            margin-top: 0.75rem;
         }
 
         .status-dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             background: var(--success);
             border-radius: 50%;
             box-shadow: 0 0 8px var(--success);
-            animation: pulse-dot 2s ease-in-out infinite;
+            animation: pulse-dot 2.5s ease-in-out infinite;
         }
 
         @keyframes pulse-dot {
-            0%, 100% { box-shadow: 0 0 8px var(--success); }
-            50% { box-shadow: 0 0 16px var(--success), 0 0 24px rgba(52, 211, 153, 0.3); }
+            0%, 100% { box-shadow: 0 0 6px var(--success); }
+            50% { box-shadow: 0 0 14px var(--success), 0 0 28px rgba(52, 211, 153, 0.2); }
         }
 
         /* New Chat Button */
@@ -124,92 +182,76 @@
 
         #new-chat-btn {
             width: 100%;
-            padding: 0.65rem 1rem;
+            padding: 0.6rem 1rem;
             border-radius: 0.75rem;
-            background: linear-gradient(135deg, var(--primary-dark) 0%, #a855f7 100%);
             color: white;
             border: none;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 0.8rem;
+            font-family: 'Barlow', sans-serif;
+            font-weight: 500;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.45rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        #new-chat-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-            opacity: 0;
-            transition: opacity 0.25s;
+            gap: 0.4rem;
         }
 
         #new-chat-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.3), 0 0 40px rgba(99, 102, 241, 0.15);
         }
-
-        #new-chat-btn:hover::before { opacity: 1; }
 
         #new-chat-btn:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
         }
 
         /* Sidebar Content */
         .sidebar-content {
             flex: 1;
             overflow-y: auto;
-            padding: 1rem;
+            padding: 0.85rem;
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
         }
 
-        .sidebar-content::-webkit-scrollbar { width: 3px; }
-        .sidebar-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .sidebar-content::-webkit-scrollbar { width: 2px; }
+        .sidebar-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 10px; }
 
         .section-title {
-            font-size: 0.65rem;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.58rem;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 0.6rem;
+            letter-spacing: 0.22em;
+            margin-bottom: 0.55rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .section-title span {
-            background: rgba(129, 140, 248, 0.15);
+            background: rgba(129, 140, 248, 0.12);
             color: var(--primary);
-            padding: 0.15rem 0.5rem;
+            padding: 0.12rem 0.45rem;
             border-radius: 1rem;
-            font-size: 0.6rem;
+            font-size: 0.55rem;
+            letter-spacing: 0.05em;
         }
 
         /* History Cards */
         .history-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 0.65rem;
-            padding: 0.65rem 0.75rem;
-            margin-bottom: 0.4rem;
+            border-radius: 0.6rem;
+            padding: 0.6rem 0.7rem;
+            margin-bottom: 0.3rem;
             cursor: pointer;
-            transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
         }
 
-        .history-card::before {
+        .history-card::after {
             content: '';
             position: absolute;
             left: 0;
@@ -218,77 +260,66 @@
             width: 2px;
             background: linear-gradient(180deg, var(--primary), var(--accent));
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .history-card:hover {
-            border-color: var(--border-active);
-            background: var(--card-bg-hover);
             transform: translateX(2px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.15);
         }
 
-        .history-card:hover::before { opacity: 1; }
+        .history-card:hover::after { opacity: 1; }
 
-        .history-card.active {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.08);
-        }
-
-        .history-card.active::before { opacity: 1; }
+        .history-card.active::after { opacity: 1; }
 
         .history-preview {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 500;
-            color: var(--text);
+            color: rgba(255, 255, 255, 0.8);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.15rem;
         }
 
         .history-meta {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: var(--text-muted);
+            letter-spacing: 0.03em;
         }
 
         /* Data Cards */
         .data-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 0.65rem;
-            padding: 0.75rem;
-            margin-bottom: 0.4rem;
-            font-size: 0.8rem;
-            transition: all 0.2s ease;
-        }
-
-        .data-card:hover {
-            border-color: var(--border-active);
-            background: var(--card-bg-hover);
+            border-radius: 0.6rem;
+            padding: 0.65rem;
+            margin-bottom: 0.3rem;
+            font-size: 0.75rem;
         }
 
         .data-card-info {
             color: var(--text-muted);
             text-align: center;
-            font-size: 0.7rem;
-            padding: 1rem 0.5rem;
+            font-size: 0.65rem;
+            padding: 0.8rem 0.5rem;
+            font-weight: 300;
+            letter-spacing: 0.03em;
         }
 
         .agent-log {
-            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-            font-size: 0.65rem;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            font-size: 0.6rem;
             color: var(--success);
-            height: 120px;
+            height: 110px;
             overflow-y: auto;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 0.6rem;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.55rem;
             border-radius: 0.5rem;
-            border: 1px solid var(--border);
-            line-height: 1.6;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            line-height: 1.7;
         }
 
-        .agent-log::-webkit-scrollbar { width: 3px; }
-        .agent-log::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.3); border-radius: 10px; }
+        .agent-log::-webkit-scrollbar { width: 2px; }
+        .agent-log::-webkit-scrollbar-thumb { background: rgba(52, 211, 153, 0.2); border-radius: 10px; }
 
         /* === MAIN CHAT === */
         main {
@@ -301,10 +332,10 @@
 
         /* Chat Header */
         .chat-header {
-            padding: 1rem 2rem;
-            border-bottom: 1px solid var(--border);
-            background: rgba(10, 10, 26, 0.5);
-            backdrop-filter: blur(12px);
+            padding: 0.85rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            background: rgba(2, 4, 10, 0.5);
+            backdrop-filter: blur(16px);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -312,28 +343,34 @@
         }
 
         .chat-header-title {
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-family: 'Instrument Serif', serif;
+            font-style: italic;
+            font-size: 1rem;
             color: var(--text);
+            letter-spacing: -0.01em;
         }
 
         .chat-header-subtitle {
-            font-size: 0.65rem;
+            font-size: 0.58rem;
             color: var(--text-muted);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 500;
         }
 
+        /* Chat Container */
         #chat-container {
             flex: 1;
             overflow-y: auto;
             padding: 2rem 2.5rem;
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1rem;
             scroll-behavior: smooth;
         }
 
-        #chat-container::-webkit-scrollbar { width: 4px; }
-        #chat-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        #chat-container::-webkit-scrollbar { width: 3px; }
+        #chat-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.04); border-radius: 10px; }
 
         /* Welcome Screen */
         .welcome-screen {
@@ -343,139 +380,149 @@
             justify-content: center;
             flex: 1;
             gap: 1.5rem;
-            animation: fadeIn 0.6s ease-out;
+            animation: welcomeFade 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        @keyframes welcomeFade {
+            from { opacity: 0; filter: blur(8px); transform: translateY(20px); }
+            to { opacity: 1; filter: blur(0); transform: translateY(0); }
+        }
+
+        .welcome-glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(60px);
+            pointer-events: none;
         }
 
         .welcome-icon {
-            width: 64px;
-            height: 64px;
+            width: 56px;
+            height: 56px;
             border-radius: 1.25rem;
-            background: linear-gradient(135deg, var(--primary-dark), #a855f7);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.25);
+            z-index: 1;
         }
 
         .welcome-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+            font-family: 'Instrument Serif', serif;
+            font-style: italic;
+            font-size: 2rem;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.5));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
+            z-index: 1;
         }
 
         .welcome-subtitle {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
             text-align: center;
-            max-width: 400px;
-            line-height: 1.5;
+            max-width: 420px;
+            line-height: 1.7;
+            font-weight: 300;
+            z-index: 1;
         }
 
         .quick-actions {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.4rem;
             flex-wrap: wrap;
             justify-content: center;
-            max-width: 500px;
+            max-width: 520px;
+            z-index: 1;
         }
 
         .quick-action {
-            padding: 0.55rem 1rem;
+            padding: 0.5rem 1rem;
             border-radius: 2rem;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
             color: var(--text-secondary);
-            font-size: 0.75rem;
-            font-family: inherit;
+            font-size: 0.72rem;
+            font-family: 'Barlow', sans-serif;
+            font-weight: 400;
             cursor: pointer;
-            transition: all 0.2s ease;
+            letter-spacing: 0.02em;
+            border: none;
         }
 
         .quick-action:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: rgba(99, 102, 241, 0.06);
-            transform: translateY(-1px);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.2), 0 0 30px rgba(99, 102, 241, 0.1);
         }
 
         /* Messages */
         .message {
-            max-width: 75%;
-            padding: 1rem 1.25rem;
-            border-radius: var(--radius-lg);
-            line-height: 1.65;
-            font-size: 0.88rem;
-            animation: msgSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 72%;
+            padding: 1rem 1.2rem;
+            line-height: 1.7;
+            font-size: 0.85rem;
+            font-weight: 300;
+            animation: msgSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         @keyframes msgSlide {
-            from { opacity: 0; transform: translateY(12px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from { opacity: 0; filter: blur(4px); transform: translateY(12px) scale(0.98); }
+            to { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
         }
 
         .message.user {
             align-self: flex-end;
             background: linear-gradient(135deg, var(--primary-dark), #a855f7);
             color: white;
-            border-bottom-right-radius: 0.25rem;
-            box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.3);
+            border-radius: 1.25rem 1.25rem 0.2rem 1.25rem;
+            box-shadow: 0 8px 32px -4px rgba(99, 102, 241, 0.25);
         }
 
         .message.bot {
             align-self: flex-start;
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(12px);
-            border-bottom-left-radius: 0.25rem;
+            border-radius: 1.25rem 1.25rem 1.25rem 0.2rem;
+            color: rgba(255, 255, 255, 0.85);
         }
 
         .message .agent-badge {
-            font-size: 0.6rem;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.55rem;
             text-transform: uppercase;
             font-weight: 600;
             color: var(--accent);
             margin-bottom: 0.4rem;
             display: block;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.18em;
         }
 
         .message code {
-            background: rgba(0, 0, 0, 0.35);
+            background: rgba(0, 0, 0, 0.3);
             padding: 0.15rem 0.4rem;
             border-radius: 4px;
             color: #a5b4fc;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
         }
 
         .message pre {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255,255,255,0.04);
             border-radius: 0.5rem;
             padding: 0.75rem;
             overflow-x: auto;
             margin: 0.5rem 0;
         }
 
-        .message pre code {
-            background: none;
-            padding: 0;
-        }
-
+        .message pre code { background: none; padding: 0; }
         .message p { margin-bottom: 0.5rem; }
         .message p:last-child { margin-bottom: 0; }
         .message ul, .message ol { padding-left: 1.2rem; margin: 0.4rem 0; }
-        .message li { margin-bottom: 0.25rem; }
-        .message strong { color: #e2e8f0; }
-        .message h3, .message h4 { margin: 0.6rem 0 0.3rem; color: #e2e8f0; }
+        .message li { margin-bottom: 0.2rem; }
+        .message strong { color: rgba(255,255,255,0.95); font-weight: 500; }
+        .message h3, .message h4 { margin: 0.6rem 0 0.3rem; color: rgba(255,255,255,0.9); font-weight: 500; }
 
         /* Typing Indicator */
         .typing-indicator {
@@ -494,8 +541,8 @@
         }
 
         .typing-dots span {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             background: var(--primary);
             border-radius: 50%;
             animation: typingBounce 1.4s ease-in-out infinite;
@@ -505,37 +552,34 @@
         .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 
         @keyframes typingBounce {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-            30% { transform: translateY(-6px); opacity: 1; }
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
+            30% { transform: translateY(-5px); opacity: 1; }
         }
 
         .typing-label {
-            font-size: 0.7rem;
+            font-size: 0.62rem;
             color: var(--text-muted);
+            letter-spacing: 0.08em;
+            font-weight: 400;
         }
 
         /* === INPUT AREA === */
         .input-area {
-            padding: 1rem 2.5rem 1.5rem;
-            background: linear-gradient(to top, var(--bg) 50%, transparent);
+            padding: 0.75rem 2.5rem 1.25rem;
+            background: linear-gradient(to top, var(--bg) 40%, transparent);
         }
 
         .input-wrapper {
-            max-width: 800px;
+            max-width: 780px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 0.35rem;
+            border-radius: 1rem;
+            padding: 0.3rem;
             display: flex;
             align-items: center;
-            backdrop-filter: blur(20px);
-            transition: all 0.25s ease;
         }
 
         .input-wrapper:focus-within {
-            border-color: var(--border-active);
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.08), 0 8px 32px rgba(129, 140, 248, 0.12);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.25), 0 0 60px rgba(99, 102, 241, 0.08);
         }
 
         #user-input {
@@ -543,26 +587,29 @@
             background: transparent;
             border: none;
             color: var(--text);
-            padding: 0.6rem 1rem;
-            font-family: inherit;
-            font-size: 0.88rem;
+            padding: 0.55rem 1rem;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 300;
             outline: none;
             cursor: text;
+            letter-spacing: 0.01em;
         }
 
         #user-input::placeholder {
             color: var(--text-muted);
+            font-weight: 300;
         }
 
         #send-btn {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary-dark), #a855f7);
             color: white;
             border: none;
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 0.6rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -570,19 +617,20 @@
         }
 
         #send-btn:hover {
-            background: var(--primary-dark);
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            transform: scale(1.08);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
         }
 
         #send-btn:active { transform: scale(0.95); }
-        #send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        #send-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
         .input-footer {
             text-align: center;
-            margin-top: 0.5rem;
-            font-size: 0.6rem;
+            margin-top: 0.4rem;
+            font-size: 0.55rem;
             color: var(--text-muted);
+            letter-spacing: 0.08em;
+            font-weight: 300;
         }
 
         /* === MOBILE === */
@@ -593,17 +641,14 @@
                 top: 0;
                 bottom: 0;
                 transform: translateX(-100%);
-                box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+                box-shadow: 4px 0 32px rgba(0,0,0,0.6);
             }
             aside.open { transform: translateX(0); }
-
-            .mobile-toggle {
-                display: flex !important;
-            }
-
+            .mobile-toggle { display: flex !important; }
             #chat-container { padding: 1.5rem; }
-            .input-area { padding: 0.75rem 1rem 1rem; }
-            .message { max-width: 90%; }
+            .input-area { padding: 0.5rem 1rem 0.75rem; }
+            .message { max-width: 88%; }
+            .welcome-title { font-size: 1.5rem; }
         }
 
         @media (min-width: 769px) {
@@ -612,29 +657,23 @@
 
         .mobile-toggle {
             display: none;
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 0.5rem;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
+            border: none;
             color: var(--text);
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .mobile-toggle:hover {
-            background: var(--card-bg-hover);
-            border-color: var(--border-active);
         }
 
         .overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             z-index: 15;
+            backdrop-filter: blur(4px);
         }
 
         .overlay.visible { display: block; }
@@ -646,15 +685,15 @@
     <aside id="sidebar">
         <div class="sidebar-header">
             <div class="logo">Career AI</div>
-            <div class="tagline">Multi-agent personal assistant with 5-layer resilience</div>
+            <div class="tagline">Multi-agent personal assistant with 5-layer resilience and grounded knowledge retrieval</div>
             <div class="system-status">
                 <div class="status-dot"></div>
                 <span id="platform-label">Orchestrator Online</span>
             </div>
         </div>
         <div class="new-chat-wrapper">
-            <button id="new-chat-btn" onclick="startNewChat()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <button id="new-chat-btn" class="liquid-glass-strong" onclick="startNewChat()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 New Chat
             </button>
         </div>
@@ -676,7 +715,7 @@
                 <div class="agent-log" id="system-log">
                     > System initialized.<br>
                     > MCP connected.<br>
-                    > Database ready.<br>
+                    > Knowledge base ready.<br>
                 </div>
             </section>
             <section>
@@ -691,8 +730,8 @@
     <main>
         <div class="chat-header">
             <div>
-                <button class="mobile-toggle" onclick="toggleSidebar()">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                <button class="mobile-toggle liquid-glass" onclick="toggleSidebar()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
             </div>
             <div style="text-align: right;">
@@ -701,21 +740,17 @@
             </div>
         </div>
 
-        <div id="chat-container">
-            <!-- Messages or welcome screen load here -->
-        </div>
+        <div id="chat-container"></div>
 
         <div class="input-area">
             <div class="typing-indicator" id="typing">
-                <div class="typing-dots">
-                    <span></span><span></span><span></span>
-                </div>
+                <div class="typing-dots"><span></span><span></span><span></span></div>
                 <span class="typing-label">Agent is thinking...</span>
             </div>
-            <div class="input-wrapper">
+            <div class="input-wrapper liquid-glass-strong">
                 <input type="text" id="user-input" placeholder="Ask me anything..." autocomplete="off">
                 <button id="send-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
             </div>
             <div class="input-footer">Career AI uses multiple AI models with automatic failover</div>
@@ -728,7 +763,6 @@
         const sendBtn = document.getElementById('send-btn');
         const typingEl = document.getElementById('typing');
         const systemLog = document.getElementById('system-log');
-        let currentSessionActive = true;
 
         function log(msg) {
             const entry = document.createElement('div');
@@ -740,16 +774,17 @@
         function showWelcome() {
             chatContainer.innerHTML = `
                 <div class="welcome-screen">
-                    <div class="welcome-icon">
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                    <div class="welcome-glow"></div>
+                    <div class="welcome-icon liquid-glass-strong">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
                     </div>
                     <div class="welcome-title">How can I help you?</div>
-                    <div class="welcome-subtitle">I'm your multi-agent career assistant with grounded knowledge retrieval and 5-layer AI resilience.</div>
+                    <div class="welcome-subtitle">Multi-agent career assistant with grounded knowledge retrieval and 5-layer AI resilience.</div>
                     <div class="quick-actions">
-                        <button class="quick-action" onclick="quickSend('What is a Codelab?')">What is a Codelab?</button>
-                        <button class="quick-action" onclick="quickSend('Career roadmap for AI/ML')">AI/ML Career Path</button>
-                        <button class="quick-action" onclick="quickSend('Tips for productivity')">Productivity Tips</button>
-                        <button class="quick-action" onclick="quickSend('Skill Labs vs Codelabs difference')">Skill Labs vs Codelabs</button>
+                        <button class="quick-action liquid-glass" onclick="quickSend('What is a Codelab?')">What is a Codelab?</button>
+                        <button class="quick-action liquid-glass" onclick="quickSend('Career roadmap for AI/ML')">AI/ML Career Path</button>
+                        <button class="quick-action liquid-glass" onclick="quickSend('Tips for productivity')">Productivity Tips</button>
+                        <button class="quick-action liquid-glass" onclick="quickSend('Skill Labs vs Codelabs difference')">Skill Labs vs Codelabs</button>
                     </div>
                 </div>
             `;
@@ -761,12 +796,12 @@
         }
 
         function addMessage(text, role, agent = null) {
-            // Remove welcome screen if present
             const welcome = chatContainer.querySelector('.welcome-screen');
             if (welcome) welcome.remove();
 
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${role}`;
+            if (role === 'bot') msgDiv.classList.add('liquid-glass');
 
             let html = '';
             if (agent && role === 'bot') {
@@ -783,32 +818,28 @@
             try {
                 const res = await fetch('/dashboard');
                 const data = await res.json();
-
                 const taskList = document.getElementById('tasks-list');
                 document.getElementById('task-count').innerText = data.tasks.length;
                 if (data.tasks.length > 0) {
                     taskList.innerHTML = data.tasks.slice(0, 3).map(t => `
-                        <div class="data-card">
-                            <strong style="font-size: 0.78rem;">${t.title}</strong><br>
-                            <small style="color: var(--text-muted); font-size: 0.65rem;">${t.description || 'No description'}</small>
+                        <div class="data-card liquid-glass">
+                            <strong style="font-size: 0.72rem; font-weight: 500;">${t.title}</strong><br>
+                            <small style="color: var(--text-muted); font-size: 0.6rem;">${t.description || 'No description'}</small>
                         </div>
                     `).join('');
                 } else {
                     taskList.innerHTML = '<div class="data-card-info">No active tasks</div>';
                 }
-
                 const notesList = document.getElementById('notes-list');
                 if (data.notes.length > 0) {
                     notesList.innerHTML = data.notes.map(n => `
-                        <div class="data-card">
-                            <small style="color: var(--text-muted); font-size: 0.6rem;">${n.timestamp}</small><br>
-                            <span style="font-size: 0.75rem;">${n.content}</span>
+                        <div class="data-card liquid-glass">
+                            <small style="color: var(--text-muted); font-size: 0.55rem;">${n.timestamp}</small><br>
+                            <span style="font-size: 0.7rem; font-weight: 300;">${n.content}</span>
                         </div>
                     `).join('');
                 }
-            } catch (e) {
-                console.error("Dashboard update failed", e);
-            }
+            } catch (e) {}
         }
 
         async function loadHistory() {
@@ -824,7 +855,6 @@
                 }
             } catch (e) {
                 showWelcome();
-                log("History load fallback to welcome.");
             }
         }
 
@@ -832,7 +862,6 @@
             const text = userInput.value.trim();
             if (!text) return;
 
-            currentSessionActive = true;
             addMessage(text, 'user');
             userInput.value = '';
             userInput.disabled = true;
@@ -843,15 +872,10 @@
             try {
                 const formData = new FormData();
                 formData.append('text', text);
-
-                const response = await fetch('/query', {
-                    method: 'POST',
-                    body: formData
-                });
-
+                const response = await fetch('/query', { method: 'POST', body: formData });
                 const data = await response.json();
                 if (data.response) {
-                    log(`[${data.metadata?.agent || 'agent'}] responded in ${data.metadata?.duration || '?'}s`);
+                    log(`[${data.metadata?.agent || 'agent'}] ${data.metadata?.duration || '?'}s`);
                     addMessage(data.response, 'bot', data.metadata?.agent);
                     document.getElementById('chat-title').textContent = text.substring(0, 30) + (text.length > 30 ? '...' : '');
                     updateDashboard();
@@ -873,9 +897,9 @@
         async function startNewChat() {
             try {
                 await fetch('/new-chat', { method: 'POST' });
-                currentSessionActive = true;
                 showWelcome();
                 document.getElementById('chat-title').textContent = 'New Conversation';
+                document.getElementById('chat-subtitle').textContent = 'Powered by 5-layer AI engine';
                 log("New session started.");
                 loadSessions();
             } catch (e) {
@@ -893,23 +917,20 @@
                     return;
                 }
                 historyList.innerHTML = data.sessions.map(s => {
-                    const preview = (s.preview || 'Empty chat').substring(0, 35);
-                    const suffix = (s.preview || '').length > 35 ? '...' : '';
+                    const preview = (s.preview || 'Empty chat').substring(0, 32);
+                    const suffix = (s.preview || '').length > 32 ? '...' : '';
                     return `
-                        <div class="history-card" onclick="viewSession(${s.session_id})" title="${s.preview || ''}">
+                        <div class="history-card liquid-glass" onclick="viewSession(${s.session_id})">
                             <div class="history-preview">${preview}${suffix}</div>
                             <div class="history-meta">${s.message_count} messages</div>
                         </div>
                     `;
                 }).join('');
-            } catch (e) {
-                // Sessions endpoint may not exist yet
-            }
+            } catch (e) {}
         }
 
         async function viewSession(sessionId) {
             try {
-                currentSessionActive = false;
                 const res = await fetch(`/sessions/${sessionId}`);
                 const data = await res.json();
                 chatContainer.innerHTML = '';
@@ -918,7 +939,7 @@
                 } else {
                     const firstUser = data.messages.find(m => m.role === 'user');
                     document.getElementById('chat-title').textContent = firstUser ? firstUser.content.substring(0, 30) + '...' : 'Past Conversation';
-                    document.getElementById('chat-subtitle').textContent = 'Viewing past session (read-only)';
+                    document.getElementById('chat-subtitle').textContent = 'Viewing past session';
                     data.messages.forEach(msg => {
                         addMessage(msg.content, msg.role, msg.role === 'bot' ? (msg.agent || 'agent') : null);
                     });
@@ -934,24 +955,17 @@
             document.getElementById('overlay').classList.toggle('visible');
         }
 
-        // Event Listeners
         sendBtn.addEventListener('click', handleSend);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleSend();
-        });
+        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
 
-        // Initialize
+        // Init
         loadHistory();
         updateDashboard();
         loadSessions();
         setInterval(updateDashboard, 30000);
 
-        // Detect platform
         fetch('/health').then(r => r.json()).then(data => {
-            if (data.platform) {
-                document.getElementById('platform-label').textContent =
-                    data.platform.name + ' | Online';
-            }
+            if (data.platform) document.getElementById('platform-label').textContent = data.platform.name + ' | Online';
         }).catch(() => {});
     </script>
 </body>
