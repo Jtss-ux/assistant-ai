@@ -22,7 +22,38 @@ from assistant_agent.deterministic_agent import run_deterministic_query
 # --- INITIALISE DATABASE ---
 init_db()
 
-# --- SETUP MCP ENVIRONMENT ---
+# --- PLATFORM DETECTION ---
+def detect_platform() -> dict:
+    """Detect and describe the runtime platform so any URL can be identified."""
+    if os.environ.get("SPACE_ID"):         # Hugging Face Spaces
+        return {
+            "name": "Hugging Face Spaces",
+            "icon": "🤗",
+            "space_id": os.environ.get("SPACE_ID"),
+            "url": f"https://huggingface.co/spaces/{os.environ.get('SPACE_ID')}",
+        }
+    elif os.environ.get("RENDER"):          # Render.com
+        return {
+            "name": "Render",
+            "icon": "⚡",
+            "service": os.environ.get("RENDER_SERVICE_NAME", "assistant-ai"),
+            "url": os.environ.get("RENDER_EXTERNAL_URL", ""),
+        }
+    elif os.environ.get("K_SERVICE"):       # Google Cloud Run
+        return {
+            "name": "Google Cloud Run",
+            "icon": "☁️",
+            "service": os.environ.get("K_SERVICE"),
+            "revision": os.environ.get("K_REVISION"),
+            "region": os.environ.get("FUNCTION_REGION", os.environ.get("GOOGLE_CLOUD_REGION", "unknown")),
+        }
+    else:                                   # Local Dev
+        return {"name": "Local Development", "icon": "💻"}
+
+PLATFORM = detect_platform()
+print(f"{PLATFORM['icon']} Runtime Platform: {PLATFORM['name']}")
+
+# --- SETUP PORT & MCP ENVIRONMENT ---
 default_port = 7860 if "SPACE_ID" in os.environ else 10000
 port = int(os.environ.get("PORT", default_port))
 if not os.environ.get("MCP_SERVER_URL"):
@@ -72,7 +103,13 @@ async def root(request: Request):
     return FileResponse("index.html")
 
 async def health_check(request: Request):
-    return JSONResponse({"status": "healthy", "service": "assistant-ai-unified", "mcp": "active", "port": port})
+    return JSONResponse({
+        "status": "healthy",
+        "service": "Career AI — Multi-Agent Assistant",
+        "mcp": "active",
+        "port": port,
+        "platform": PLATFORM,
+    })
 
 async def ping(request: Request):
     return PlainTextResponse("pong")
