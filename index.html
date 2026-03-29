@@ -37,8 +37,8 @@
         .liquid-glass {
             background: rgba(255, 255, 255, 0.015);
             background-blend-mode: luminosity;
-            backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
             border: none;
             box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 4px 24px rgba(0, 0, 0, 0.2);
             position: relative;
@@ -54,6 +54,7 @@
             padding: 1px;
             background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.05) 80%, rgba(255,255,255,0.2) 100%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             pointer-events: none;
@@ -62,8 +63,8 @@
         .liquid-glass-strong {
             background: rgba(255, 255, 255, 0.02);
             background-blend-mode: luminosity;
-            backdrop-filter: blur(50px);
-            -webkit-backdrop-filter: blur(50px);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
             border: none;
             box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
             position: relative;
@@ -79,7 +80,9 @@
             padding: 1.2px;
             background: linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.4) 100%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
+            mask-composite: exclude;
             mask-composite: exclude;
             pointer-events: none;
         }
@@ -335,7 +338,8 @@
             padding: 0.85rem 2rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             background: rgba(2, 4, 10, 0.5);
-            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -677,6 +681,130 @@
         }
 
         .overlay.visible { display: block; }
+
+        /* --- NOTES MODAL --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active { display: flex; opacity: 1; }
+
+        .modal-content {
+            width: 100%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-family: 'Instrument Serif', serif;
+            font-style: italic;
+            font-size: 1.5rem;
+            letter-spacing: -0.01em;
+            color: white;
+        }
+
+        .note-textarea {
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
+            padding: 1rem;
+            color: white;
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s;
+        }
+
+        .note-textarea:focus { border-color: #6366f1; }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost { background: transparent; color: rgba(255,255,255,0.6); }
+        .btn-ghost:hover { color: white; background: rgba(255,255,255,0.05); }
+
+        .btn-primary { 
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+
+        /* Notes Sidebar Items */
+        .note-item {
+            position: relative;
+        }
+
+        .note-actions {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .note-item:hover .note-actions { opacity: 1; }
+
+        .note-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .note-btn:hover { background: rgba(255,255,255,0.2); }
+        .note-btn.delete:hover { background: rgba(239, 68, 68, 0.3); }
     </style>
 </head>
 <body>
@@ -719,7 +847,17 @@
                 </div>
             </section>
             <section>
-                <div class="section-title">Notes</div>
+                <div class="section-title">
+                    Notes
+                    <div style="display:flex; gap: 8px;">
+                        <button onclick="openNoteModal()" title="Create New Note" style="background:none; border:none; color:#6366f1; cursor:pointer; display:flex; align-items:center;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        </button>
+                        <button onclick="clearAllNotes()" title="Clear All (Privacy Wipe)" style="background:none; border:none; color:rgba(255,255,255,0.4); cursor:pointer; display:flex; align-items:center;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                </div>
                 <div id="notes-list">
                     <div class="data-card-info">No notes yet</div>
                 </div>
@@ -757,12 +895,212 @@
         </div>
     </main>
 
+        <div class="modal-overlay" id="note-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title" id="modal-title">New Note</div>
+                    <button onclick="closeNoteModal()" class="btn-ghost" style="padding: 4px; border-radius: 50%;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="21" x2="21" y2="6"></line></svg>
+                    </button>
+                </div>
+                <input type="hidden" id="note-id">
+                <textarea id="note-textarea" class="note-textarea" placeholder="Type your career notes here..."></textarea>
+                <div class="modal-actions">
+                    <button onclick="closeNoteModal()" class="btn btn-ghost">Cancel</button>
+                    <button onclick="saveNote()" class="btn btn-primary">Save Note</button>
+                </div>
+            </div>
+        </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        const supabaseUrl = 'https://xciubgoayqnqyeccybhu.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjaXViZ29heXFucXllY2N5Ymh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MTcyMzAsImV4cCI6MjA5MDM5MzIzMH0.DSUGHeH7BVNZHsYWJaCGPtRbHukSevb4EwVAI6B5kP4';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY", // Please replace with your new Web API Key
+            authDomain: "assistant-ai-07978784.firebaseapp.com",
+            projectId: "assistant-ai-07978784",
+            storageBucket: "assistant-ai-07978784.firebasestorage.app",
+            messagingSenderId: "677119230894",
+            appId: "YOUR_APP_ID",   // Please replace with your new Web App ID
+            measurementId: "G-Z3TCRCS139"
+        };
+
+        // API Base configuration for cross-origin hosting (Firebase)
+        const API_BASE = (location.hostname.includes('firebaseapp.com') || location.hostname.includes('web.app')) 
+            ? 'https://jtsvize-career-ai.hf.space'  // Point to current active backend
+            : '';
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+        let isSyncing = false;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                log("Cloud Workspace Connected: Backup Active.");
+                syncNotesFromCloud();
+            } else {
+                signInAnonymously(auth).catch(e => log("Cloud Backup Unavailable (Offline/Config Error)"));
+            }
+        });
+
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const typingEl = document.getElementById('typing');
         const systemLog = document.getElementById('system-log');
+
+        // --- NOTES LOGIC (Private/On-Device) ---
+        let notes = JSON.parse(localStorage.getItem('career_ai_notes') || '[]');
+
+        function renderNotes() {
+            const list = document.getElementById('notes-list');
+            if (notes.length === 0) {
+                list.innerHTML = '<div class="data-card-info">No notes yet</div>';
+                return;
+            }
+            
+            list.innerHTML = notes.map(note => `
+                <div class="data-card liquid-glass note-item">
+                    <div class="note-actions">
+                        <button class="note-btn" onclick="openNoteModal('${note.id}')" title="Edit">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="note-btn delete" onclick="deleteNote('${note.id}')" title="Delete">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 0.55rem;">${new Date(note.timestamp).toLocaleDateString()}</small><br>
+                    <span style="font-size: 0.72rem; font-weight: 300; display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; line-height: 1.4;">
+                        ${note.content.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function openNoteModal(id = null) {
+            const modal = document.getElementById('note-modal');
+            const title = document.getElementById('modal-title');
+            const textarea = document.getElementById('note-textarea');
+            const idInput = document.getElementById('note-id');
+
+            if (id) {
+                const note = notes.find(n => n.id === id);
+                title.innerText = 'Edit Note';
+                textarea.value = note.content;
+                idInput.value = note.id;
+            } else {
+                title.innerText = 'New Note';
+                textarea.value = '';
+                idInput.value = '';
+            }
+
+            modal.classList.add('active');
+            textarea.focus();
+        }
+
+        function closeNoteModal() {
+            document.getElementById('note-modal').classList.remove('active');
+        }
+
+        async function saveNote() {
+            const content = document.getElementById('note-textarea').value.trim();
+            const id = document.getElementById('note-id').value;
+            
+            if (!content) return;
+
+            let noteObj;
+            if (id) {
+                const index = notes.findIndex(n => n.id === id);
+                notes[index].content = content;
+                notes[index].timestamp = Date.now();
+                noteObj = notes[index];
+            } else {
+                noteObj = {
+                    id: 'note_' + Date.now(),
+                    content: content,
+                    timestamp: Date.now()
+                };
+                notes.unshift(noteObj);
+            }
+
+            localStorage.setItem('career_ai_notes', JSON.stringify(notes));
+            renderNotes();
+            closeNoteModal();
+            log(id ? "Note updated locally." : "New note saved.");
+
+            // Firebase Backup logic
+            if (currentUser) {
+                try {
+                    await setDoc(doc(db, "users", currentUser.uid, "notes", noteObj.id), noteObj);
+                    log("Cloud sync successful.");
+                } catch (e) {
+                    log("Cloud backup failed (Saving locally only).");
+                }
+            }
+        }
+
+        async function syncNotesFromCloud() {
+            if (!currentUser) return;
+            try {
+                const q = collection(db, "users", currentUser.uid, "notes");
+                const querySnapshot = await getDocs(q);
+                let cloudNotes = [];
+                querySnapshot.forEach((doc) => {
+                    cloudNotes.push(doc.data());
+                });
+
+                if (cloudNotes.length > 0) {
+                    // Simple merge: add cloud notes that aren't local
+                    let merged = [...notes];
+                    cloudNotes.forEach(cn => {
+                        if (!merged.find(mn => mn.id === cn.id)) {
+                            merged.push(cn);
+                        }
+                    });
+                    notes = merged.sort((a,b) => b.timestamp - a.timestamp);
+                    localStorage.setItem('career_ai_notes', JSON.stringify(notes));
+                    renderNotes();
+                    log("Restored notes from Cloud Backup.");
+                }
+            } catch (e) {
+                console.error("Sync error:", e);
+            }
+        }
+
+        function deleteNote(id) {
+            if (confirm('Delete this note?')) {
+                notes = notes.filter(n => n.id !== id);
+                localStorage.setItem('career_ai_notes', JSON.stringify(notes));
+                renderNotes();
+                log("Note removed.");
+            }
+        }
+
+        function clearAllNotes() {
+            if (confirm('Privacy Wipe: Delete all notes from this device?')) {
+                notes = [];
+                localStorage.removeItem('career_ai_notes');
+                renderNotes();
+                log("All on-device notes destroyed.");
+            }
+        }
 
         function log(msg) {
             const entry = document.createElement('div');
@@ -816,7 +1154,7 @@
 
         async function updateDashboard() {
             try {
-                const res = await fetch('/dashboard');
+                const res = await fetch(`${API_BASE}/dashboard`);
                 const data = await res.json();
                 const taskList = document.getElementById('tasks-list');
                 document.getElementById('task-count').innerText = data.tasks.length;
@@ -830,21 +1168,12 @@
                 } else {
                     taskList.innerHTML = '<div class="data-card-info">No active tasks</div>';
                 }
-                const notesList = document.getElementById('notes-list');
-                if (data.notes.length > 0) {
-                    notesList.innerHTML = data.notes.map(n => `
-                        <div class="data-card liquid-glass">
-                            <small style="color: var(--text-muted); font-size: 0.55rem;">${n.timestamp}</small><br>
-                            <span style="font-size: 0.7rem; font-weight: 300;">${n.content}</span>
-                        </div>
-                    `).join('');
-                }
             } catch (e) {}
         }
 
         async function loadHistory() {
             try {
-                const res = await fetch('/history');
+                const res = await fetch(`${API_BASE}/history`);
                 const data = await res.json();
                 if (!data.history || data.history.length === 0) {
                     showWelcome();
@@ -872,7 +1201,7 @@
             try {
                 const formData = new FormData();
                 formData.append('text', text);
-                const response = await fetch('/query', { method: 'POST', body: formData });
+                const response = await fetch(`${API_BASE}/query`, { method: 'POST', body: formData });
                 const data = await response.json();
                 if (data.response) {
                     log(`[${data.metadata?.agent || 'agent'}] ${data.metadata?.duration || '?'}s`);
@@ -896,7 +1225,7 @@
 
         async function startNewChat() {
             try {
-                await fetch('/new-chat', { method: 'POST' });
+                await fetch(`${API_BASE}/new-chat`, { method: 'POST' });
                 showWelcome();
                 document.getElementById('chat-title').textContent = 'New Conversation';
                 document.getElementById('chat-subtitle').textContent = 'Powered by 5-layer AI engine';
@@ -909,7 +1238,7 @@
 
         async function loadSessions() {
             try {
-                const res = await fetch('/sessions');
+                const res = await fetch(`${API_BASE}/sessions`);
                 const data = await res.json();
                 const historyList = document.getElementById('history-list');
                 if (!data.sessions || data.sessions.length === 0) {
@@ -931,7 +1260,7 @@
 
         async function viewSession(sessionId) {
             try {
-                const res = await fetch(`/sessions/${sessionId}`);
+                const res = await fetch(`${API_BASE}/sessions/${sessionId}`);
                 const data = await res.json();
                 chatContainer.innerHTML = '';
                 if (!data.messages || data.messages.length === 0) {
@@ -962,11 +1291,25 @@
         loadHistory();
         updateDashboard();
         loadSessions();
+        renderNotes();
         setInterval(updateDashboard, 30000);
 
-        fetch('/health').then(r => r.json()).then(data => {
+        fetch(`${API_BASE}/health`).then(r => r.json()).then(data => {
             if (data.platform) document.getElementById('platform-label').textContent = data.platform.name + ' | Online';
         }).catch(() => {});
+
+        // EXPORTS FOR HTML COMPATIBILITY (ESM Isolation)
+        window.handleSend = handleSend;
+        window.startNewChat = startNewChat;
+        window.viewSession = viewSession;
+        window.openNoteModal = openNoteModal;
+        window.saveNote = saveNote;
+        window.deleteNote = deleteNote;
+        window.clearAllNotes = clearAllNotes;
+        window.closeNoteModal = closeNoteModal;
+        window.toggleSidebar = toggleSidebar;
+        window.quickSend = quickSend;
+        window.renderNotes = renderNotes;
     </script>
 </body>
 </html>

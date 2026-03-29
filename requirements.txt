@@ -10,3 +10,4 @@ mcp[cli]
 python-multipart
 pinecone
 pinecone-plugin-assistant
+supabase

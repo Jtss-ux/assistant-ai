@@ -51,7 +51,10 @@ def detect_platform() -> dict:
         return {"name": "Local Development", "icon": "💻"}
 
 PLATFORM = detect_platform()
-print(f"{PLATFORM['icon']} Runtime Platform: {PLATFORM['name']}")
+try:
+    print(f"{PLATFORM['icon']} Runtime Platform: {PLATFORM['name']}")
+except UnicodeEncodeError:
+    print(f"Runtime Platform: {PLATFORM['name']}")
 
 # --- SETUP PORT & MCP ENVIRONMENT ---
 # HF Spaces injects PORT=8080 internally, but its reverse proxy always
@@ -65,11 +68,11 @@ if not os.environ.get("MCP_SERVER_URL"):
 
 # --- CHECK BACKUP APIS ---
 if os.environ.get("PINECONE_API_KEY"):
-    print("🌲 Pinecone Vector Memory: Key detected. (Ready for future scale)")
+    print("Pinecone Vector Memory: Key detected. (Ready for future scale)")
 if os.environ.get("TOGETHER_API_KEY"):
-    print("☁️ Together AI Fallback: Active (Ghost Mode Trial 4)")
+    print("Together AI Fallback: Active (Ghost Mode Trial 4)")
 if os.environ.get("OPENAI_API_KEY"):
-    print("☁️ OpenAI Fallback: Active (Ghost Mode Trial 4)")
+    print("OpenAI Fallback: Active (Ghost Mode Trial 4)")
 
 # --- TAVILY WEB SEARCH ---
 async def fetch_web_context(query: str) -> str:

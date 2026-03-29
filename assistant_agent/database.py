@@ -1,25 +1,36 @@
 import os
 import sqlite3
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import BaseModel
+from datetime import datetime
 
-# --- CONFIGURATION ---
+# --- DATABASE CONFIGURATION ---
 DB_PATH = os.environ.get("DATABASE_PATH", "/tmp/assistant.db")
+USE_SUPABASE = os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_KEY")
+
+if USE_SUPABASE:
+    from supabase import create_client, Client
+    supabase: Client = create_client(
+        os.environ.get("SUPABASE_URL"), 
+        os.environ.get("SUPABASE_SERVICE_KEY")
+    )
+else:
+    supabase = None
 
 class Task(BaseModel):
-    id: Optional[int] = None
+    id: Optional[Union[int, str]] = None
     title: str
     description: Optional[str] = None
     status: str = "pending"
     due_date: Optional[str] = None
 
 class Note(BaseModel):
-    id: Optional[int] = None
+    id: Optional[Union[int, str]] = None
     content: str
     timestamp: str
 
 def init_db():
-    """Initializes the SQLite database. Ensures the parent directory exists."""
+    """Initializes local SQLite database only."""
     db_dir = os.path.dirname(os.path.abspath(DB_PATH))
     if db_dir and not os.path.exists(db_dir):
         os.makedirs(db_dir, exist_ok=True)
@@ -42,9 +53,8 @@ def init_db():
     # Migrate: add session_id if missing
     try:
         cursor.execute("ALTER TABLE messages ADD COLUMN session_id INTEGER DEFAULT 1")
-        conn.commit()
     except sqlite3.OperationalError:
-        pass  # Column already exists
+        pass
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,19 +74,28 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_task(title: str, description: str = None, due_date: str = None) -> int:
+def add_task(title: str, description: str = None, due_date: str = None) -> Union[int, str]:
+    if USE_SUPABASE:
+        data = {"title": title, "description": description, "status": "pending", "due_date": due_date}
+        res = supabase.table("tasks").insert(data).execute()
+        return res.data[0]['id'] if res.data else 0
+    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO tasks (title, description, due_date) VALUES (?, ?, ?)",
-        (title, description, due_date)
-    )
+    cursor.execute("INSERT INTO tasks (title, description, due_date) VALUES (?, ?, ?)", (title, description, due_date))
     task_id = cursor.lastrowid
     conn.commit()
     conn.close()
     return task_id
 
 def get_tasks(status: str = None) -> List[dict]:
+    if USE_SUPABASE:
+        query = supabase.table("tasks").select("*")
+        if status:
+            query = query.eq("status", status)
+        res = query.execute()
+        return res.data
+
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -88,7 +107,12 @@ def get_tasks(status: str = None) -> List[dict]:
     conn.close()
     return [dict(row) for row in rows]
 
-def add_note(content: str) -> int:
+def add_note(content: str) -> Union[int, str]:
+    if USE_SUPABASE:
+        data = {"content": content}
+        res = supabase.table("notes").insert(data).execute()
+        return res.data[0]['id'] if res.data else 0
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("INSERT INTO notes (content) VALUES (?)", (content,))
@@ -98,6 +122,10 @@ def add_note(content: str) -> int:
     return note_id
 
 def get_notes() -> List[dict]:
+    if USE_SUPABASE:
+        res = supabase.table("notes").select("*").order("created_at", desc=True).execute()
+        return res.data
+
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -111,7 +139,13 @@ _current_session_id = None
 
 def get_current_session_id():
     global _current_session_id
-    if _current_session_id is None:
+    if _current_session_id is not None:
+        return _current_session_id
+        
+    if USE_SUPABASE:
+        res = supabase.table("messages").select("session_id").order("session_id", desc=True).limit(1).execute()
+        _current_session_id = res.data[0]['session_id'] if res.data else 1
+    else:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT COALESCE(MAX(session_id), 1) FROM messages")
@@ -119,13 +153,17 @@ def get_current_session_id():
         conn.close()
     return _current_session_id
 
-def set_new_session():
-    global _current_session_id
-    _current_session_id = clear_chat()
-    return _current_session_id
-
 def save_message(role: str, content: str, agent: str = None, duration: float = None, tokens: int = None, tps: float = None):
     session_id = get_current_session_id()
+    if USE_SUPABASE:
+        data = {
+            "role": role, "content": content, "agent": agent, 
+            "duration": duration, "tokens": tokens, "tps": tps, 
+            "session_id": session_id
+        }
+        supabase.table("messages").insert(data).execute()
+        return
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute(
@@ -136,6 +174,12 @@ def save_message(role: str, content: str, agent: str = None, duration: float = N
     conn.close()
 
 def get_chat_history(limit: int = 50) -> List[dict]:
+    if USE_SUPABASE:
+        # Get max session_id first
+        sid = get_current_session_id()
+        res = supabase.table("messages").select("*").eq("session_id", sid).order("created_at", desc=False).limit(limit).execute()
+        return res.data
+
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -145,38 +189,14 @@ def get_chat_history(limit: int = 50) -> List[dict]:
     return [dict(row) for row in rows]
 
 def clear_chat() -> int:
-    """Start a new session by incrementing the session counter."""
+    if USE_SUPABASE:
+        res = supabase.table("messages").select("session_id").order("session_id", desc=True).limit(1).execute()
+        new_session = (res.data[0]['session_id'] if res.data else 0) + 1
+        return new_session
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT COALESCE(MAX(session_id), 0) + 1 FROM messages")
     new_session = cursor.fetchone()[0]
     conn.close()
     return new_session
-
-def get_sessions() -> List[dict]:
-    """Get a list of all chat sessions with their first message as preview."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT session_id,
-               MIN(timestamp) as started,
-               COUNT(*) as message_count,
-               (SELECT content FROM messages m2 WHERE m2.session_id = m1.session_id AND m2.role = 'user' ORDER BY m2.timestamp ASC LIMIT 1) as preview
-        FROM messages m1
-        GROUP BY session_id
-        ORDER BY MIN(timestamp) DESC
-    """)
-    rows = cursor.fetchall()
-    conn.close()
-    return [dict(row) for row in rows]
-
-def get_session_messages(session_id: int) -> List[dict]:
-    """Get all messages for a specific session."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM messages WHERE session_id = ? ORDER BY timestamp ASC", (session_id,))
-    rows = cursor.fetchall()
-    conn.close()
-    return [dict(row) for row in rows]
