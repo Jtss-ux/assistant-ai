@@ -1,0 +1,9 @@
+.git
+.venv
+__pycache__
+*.pyc
+.env
+assistant.db
+jtspine/
+frontend/node_modules
+dist/
