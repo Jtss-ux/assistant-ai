@@ -15,7 +15,7 @@ load_dotenv()
 
 # --- IMPORT ASSISTANT AGENT ---
 from assistant_agent import assistant_root, init_db
-from assistant_agent.database import save_message, get_chat_history, get_tasks, get_notes
+from assistant_agent.database import save_message, get_chat_history, get_tasks, get_notes, set_new_session, get_sessions, get_session_messages
 from assistant_agent.mcp_server import mcp, get_mcp_app
 from assistant_agent.deterministic_agent import run_deterministic_query
 
@@ -127,6 +127,22 @@ async def dashboard_data(request: Request):
         "notes": get_notes()[:3],
         "system": {"model": os.environ.get("MODEL", "gemini-2.0-flash"), "mcp": "online"}
     })
+
+async def new_chat(request: Request):
+    """Start a fresh chat session."""
+    session_id = set_new_session()
+    return JSONResponse({"status": "ok", "session_id": session_id})
+
+async def list_sessions(request: Request):
+    """Get all past chat sessions for the history sidebar."""
+    sessions = get_sessions()
+    return JSONResponse({"sessions": sessions})
+
+async def session_detail(request: Request):
+    """Get messages for a specific past session."""
+    session_id = request.path_params["session_id"]
+    messages = get_session_messages(int(session_id))
+    return JSONResponse({"messages": messages})
 
 
 # ── LLM ENGINE CALLERS ──────────────────────────────────────────────────────
@@ -340,6 +356,9 @@ routes = [
     Route("/history", chat_history, methods=["GET"]),
     Route("/dashboard", dashboard_data, methods=["GET"]),
     Route("/query", query_agent, methods=["POST"]),
+    Route("/new-chat", new_chat, methods=["POST"]),
+    Route("/sessions", list_sessions, methods=["GET"]),
+    Route("/sessions/{session_id:int}", session_detail, methods=["GET"]),
 ]
 
 if os.path.exists("frontend/dist/assets"):

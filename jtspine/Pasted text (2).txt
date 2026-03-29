@@ -1,0 +1,321 @@
+
+Your Company
+Select Language▼
+
+Home
+
+Blogs
+
+My Dashboard
+
+Joseph Thomas Stalin
+
+josephst2007@gmail.com
+Logout
+/
+Gen AI Academy APAC Edition
+/
+Roadmap
+
+support@hack2skill.com
+
+Welcome, Joseph Thomas Stalin
+
+MCQ Submissions are now Live!
+
+
+To gain a clear understanding of the program structure, key milestones, and next steps, please watch the introductory session via the Interactions section.
+
+Please use this link to join the Discord community
+
+Refer to the resources section for the program related FAQs and guides for Google Skills Labs.
+Roadmap
+
+Begin your path to success! Follow each step carefully, complete all tasks for this initiative, and achieve the desired outcome.
+Registration
+[ You are registered ]
+
+Tue, Jan 27, 2026 4:18 PM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Share your Google Skills Public Profile link
+[ Module Closing in : 09:19:56:06 ]
+
+Wed, Jan 28, 2026 12:00 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Google Skills- Optional (Track 1) - Build and Deploy AI Agents
+[ Module Closing in : 09:19:56:06 ]
+
+Wed, Jan 28, 2026 12:01 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Google Skills- Optional (Track 2) - Connect AI Agents to Real-World Data
+[ Module Closing in : 09:19:56:06 ]
+
+Wed, Jan 28, 2026 12:01 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Google Skills- Optional (Track 3) - Build and Migrate faster with AI-Ready Databases
+[ Module Closing in : 09:19:56:06 ]
+
+Wed, Jan 28, 2026 12:01 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Google Skills Lab Submission
+[ Module Closing in : 08:19:58:06 ]
+
+Thu, Feb 12, 2026 12:00 AM (IST) -
+
+Tue, Mar 31, 2026 12:01 AM (IST)
+MCQ- Optional (Track 1) - Agentic AI: From Design to Deployment
+
+Wed, Feb 18, 2026 4:00 PM (IST) -
+
+Wed, Feb 18, 2026 4:12 PM (IST)
+MCQ- Optional (Track 2)- Connect AI Agents to Data and Tools Using MCP
+
+Wed, Feb 18, 2026 4:00 PM (IST) -
+
+Wed, Feb 18, 2026 4:12 PM (IST)
+MCQ- Optional (Track 3)- Powering AI Applications with AlloyDB
+
+Wed, Feb 18, 2026 4:00 PM (IST) -
+
+Wed, Feb 18, 2026 4:12 PM (IST)
+Introductory Session
+
+Fri, Feb 27, 2026 4:00 PM (IST) -
+
+Fri, Feb 27, 2026 5:30 PM (IST)
+Workshop-Agentic AI: From Design to Deployment (Track 1- Korea)
+
+Mon, Mar 09, 2026 12:30 PM (IST) -
+
+Mon, Mar 09, 2026 2:00 PM (IST)
+Workshop- Agentic AI: From Design to Deployment (Track 1- English)
+
+Mon, Mar 09, 2026 4:00 PM (IST) -
+
+Mon, Mar 09, 2026 5:30 PM (IST)
+Live Now
+Lab Completion 1 (Track 1) - Build and deploy an ADK agent on Cloud Run
+[ Module Closing in : 09:19:56:06 ]
+
+Mon, Mar 09, 2026 4:01 PM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Lab Completion 2 (Track 1) - Building AI Agents with ADK: The Foundation
+[ Module Closing in : 09:19:56:06 ]
+
+Mon, Mar 09, 2026 4:02 PM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Workshop-Connect AI Agents to Data and Tools Using MCP (Track 2- Korea)
+
+Wed, Mar 11, 2026 12:30 PM (IST) -
+
+Wed, Mar 11, 2026 2:00 PM (IST)
+Workshop- Connect AI Agents to Data and Tools Using MCP (Track 2- English)
+
+Thu, Mar 12, 2026 4:00 PM (IST) -
+
+Thu, Mar 12, 2026 5:30 PM (IST)
+Live Now
+Lab Completion 1 (Track 2)- Build a Location Intelligence ADK Agent with MCP servers for BigQuery and Google Maps
+[ Module Closing in : 09:19:56:06 ]
+
+Thu, Mar 12, 2026 4:01 PM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Lab Completion 2 (Track 2)- MCP Toolbox for Databases: Making BigQuery datasets available to MCP clients
+[ Module Closing in : 09:19:56:06 ]
+
+Thu, Mar 12, 2026 4:02 PM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Workshop- Powering AI Applications with AlloyDB (Track 3- Korea)
+
+Fri, Mar 13, 2026 12:30 PM (IST) -
+
+Fri, Mar 13, 2026 2:00 PM (IST)
+Workshop- Agentic AI: From Design to Deployment (Track 1- Simple Chinese)
+
+Mon, Mar 16, 2026 1:30 PM (IST) -
+
+Mon, Mar 16, 2026 3:00 PM (IST)
+Workshop - Agentic AI: From Design to Deployment (Track 1- Bahasa)
+
+Mon, Mar 16, 2026 2:30 PM (IST) -
+
+Mon, Mar 16, 2026 4:00 PM (IST)
+Live Now
+Lab Completion 1 (Track 3)- AlloyDB Quick Setup
+[ Module Closing in : 09:19:56:06 ]
+
+Mon, Mar 16, 2026 3:30 PM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Lab Completion 2 (Track 3)- Building a Real-Time Surplus Engine with Gemini 3 Flash & AlloyDB
+[ Module Closing in : 09:19:56:06 ]
+
+Mon, Mar 16, 2026 3:30 PM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Workshop- Powering AI Applications with AlloyDB (Track 3- English)
+
+Mon, Mar 16, 2026 4:00 PM (IST) -
+
+Mon, Mar 16, 2026 5:30 PM (IST)
+Workshop- Connect AI Agents to Data and Tools Using MCP (Track 2- Simple Chinese)
+
+Tue, Mar 17, 2026 1:30 PM (IST) -
+
+Tue, Mar 17, 2026 3:00 PM (IST)
+Workshop- Connect AI Agents to Data and Tools Using MCP (Track 2- Bahasa)
+
+Tue, Mar 17, 2026 2:30 PM (IST) -
+
+Tue, Mar 17, 2026 4:00 PM (IST)
+Live Now
+MCQ Track 1
+[ Module Closing in : 09:19:56:06 ]
+
+Wed, Mar 18, 2026 12:00 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+MCQ Track 2
+[ Module Closing in : 09:19:56:06 ]
+
+Wed, Mar 18, 2026 12:00 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+MCQ Track 3
+[ Module Closing in : 09:19:56:06 ]
+
+Wed, Mar 18, 2026 12:00 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Workshop - Powering AI Applications with AlloyDB (Track 3 - Simple Chinese)
+
+Wed, Mar 18, 2026 1:30 PM (IST) -
+
+Wed, Mar 18, 2026 3:00 PM (IST)
+Workshop- Powering AI Applications with AlloyDB (Track 3- Bahasa)
+
+Wed, Mar 18, 2026 2:30 PM (IST) -
+
+Wed, Mar 18, 2026 4:00 PM (IST)
+Live Now
+Project Submission (Track 1) - Build and Deploy AI Agents
+[ Module Closing in : 09:19:56:06 ]
+
+Thu, Mar 19, 2026 12:00 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Project Submission (Track 2) - Connect AI Agents to Real-World Data
+[ Module Closing in : 09:19:56:06 ]
+
+Thu, Mar 19, 2026 12:01 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Live Now
+Project Submission (Track 3) - Build and Migrate faster with AI-Ready Databases
+[ Module Closing in : 09:19:56:06 ]
+
+Thu, Mar 19, 2026 12:02 AM (IST) -
+
+Tue, Mar 31, 2026 11:59 PM (IST)
+Hackathon Problem Statement Release
+
+Tue, Mar 24, 2026 12:00 AM (IST) -
+
+Tue, Mar 24, 2026 11:59 PM (IST)
+Hackathon Prototype Submission Phase
+
+Wed, Apr 01, 2026 12:00 AM (IST) -
+
+Wed, Apr 08, 2026 11:59 PM (IST)
+Hackathon Prototype Evaluations
+
+Thu, Apr 09, 2026 12:00 AM (IST) -
+
+Tue, Apr 21, 2026 11:59 PM (IST)
+Graduation Ceremony
+
+Fri, Apr 17, 2026 12:00 AM (IST) -
+
+Fri, Apr 17, 2026 11:59 PM (IST)
+Top 10 Team announcement
+
+Thu, Apr 23, 2026 12:00 AM (IST) -
+
+Thu, Apr 23, 2026 11:59 PM (IST)
+How to pitch webinar with top teams
+
+Fri, Apr 24, 2026 4:00 PM (IST) -
+
+Fri, Apr 24, 2026 5:00 PM (IST)
+Virtual Finale
+
+Tue, Apr 28, 2026 12:00 AM (IST) -
+
+Tue, Apr 28, 2026 11:59 PM (IST)
+Winner Announcement (Across all platforms)
+
+Tue, Apr 28, 2026 12:00 AM (IST) -
+
+Tue, Apr 28, 2026 11:59 PM (IST)
+Elite Club Announcement
+
+Thu, Apr 30, 2026 4:00 PM (IST) -
+
+Thu, Apr 30, 2026 5:00 PM (IST)
+Gen AI Academy APAC Edition
+free|Hybrid
+
+SUBMISSION CLOSING IN
+08d19h58m
+Breakout Zone
+Polls
+Refer a Friend
+Discussion Forum
+H2S Logo
+
+Equip your company with the most comprehensive innovation management platform, supported by human intelligence.
+Our Blogs
+Privacy Policy
+Terms of Service
+Cookie Policy
+Cookie Settings
+Contact with us:
+For Business Inquiry:
+info@Hack2skill.com
+For Support & Queries:
+support@Hack2skill.com
+Call:
++91 9870330830
+Corporate Address:
+India:
+Delhi NCR:
+
+A-14, 4th floor Eco Tower, Sector 125, Noida, Uttar Pradesh 201303
+Bengaluru:
+
+Wework Galaxy, 43, Residency Rd, Shanthala Nagar, Ashok Nagar, Bengaluru, Karnataka 560025
+USA:
+Michigan:
+
+2025, Long Lake, Troy, Michigan , 48098- Zip Code, (248)
+2026 © All rights reserved by Hack2skill

@@ -45,11 +45,11 @@ def get_emergency_wisdom(query: str):
     # Priority 1: Career-specific match
     for key, wisdom in CAREER_SENSE.items():
         if key in query:
-            return f"🎨 **Career Mastery ({key.capitalize()})**: {wisdom}"
+            return f"**Career Mastery ({key.capitalize()})**: {wisdom}"
     
     # Priority 2: General Productivity match
     if any(k in query for k in ["time", "focus", "work", "productive", "efficient"]):
-        return f"🚀 **Professional Efficiency**: {PRODUCTIVITY_HACKS[2]}"
+        return f"**Professional Efficiency**: {PRODUCTIVITY_HACKS[2]}"
     
     # Default: Return a strong general insight
-    return f"🚀 **Executive Wisdom**: {CAREER_SENSE['generic']}"
+    return f"**Executive Wisdom**: {CAREER_SENSE['generic']}"

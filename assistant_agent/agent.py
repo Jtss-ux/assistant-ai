@@ -3,6 +3,20 @@ from google.adk.agents import Agent
 from .database import add_task, get_tasks, add_note, get_notes
 import httpx
 import json
+from .static_knowledge import get_emergency_wisdom
+
+# --- PINECONE GROUNDED KNOWLEDGE LAYER ---
+PINECONE_READY = False
+try:
+    from pinecone import Pinecone
+    from pinecone_plugins.assistant.models.chat import Message
+    pc_api_key = os.environ.get("PINECONE_API_KEY")
+    if pc_api_key:
+        pc_client = Pinecone(api_key=pc_api_key)
+        pinecone_assistant = pc_client.assistant.Assistant(assistant_name="jts")
+        PINECONE_READY = True
+except Exception as e:
+    print(f"Warning: Pinecone Grounded Retrieval Offline: {e}")
 
 # --- RESILIENT MCP TOOLSET IMPORT ---
 MCP_TOOLSET_AVAILABLE = False
@@ -20,7 +34,7 @@ try:
 except ImportError:
     MCPToolset = None
     StreamableHTTPConnectionParams = None
-    print("⚠️ MCPToolset not available in this ADK version — schedule_agent will use direct tools.")
+    print("Warning: MCPToolset not available in this ADK version - schedule_agent will use direct tools.")
 
 # --- NEURAL TOOLS ---
 
@@ -105,6 +119,25 @@ def read_notes() -> str:
         res += f"- [{n['timestamp']}] {n['content']}\n"
     return res
 
+def query_knowledge_base(query: str) -> str:
+    """Queries the verified project knowledge base for grounded information.
+    Use this for any questions about Hack2Skill, Codelabs, Skills Labs, or project specific roadmaps.
+    
+    Args:
+        query: The specific question or topic to search for in the documentation.
+    """
+    if not PINECONE_READY:
+        return f"Warning: [Grounded Retrieval Offline] Falling back to Internal Logic:\n{get_emergency_wisdom(query)}"
+    
+    try:
+        msg = Message(role="user", content=query)
+        # We use the gpt-4o model integrated within the assistant by default
+        resp = pinecone_assistant.chat(messages=[msg])
+        content = resp["message"]["content"]
+        return f"**[Source: Verified Project Documentation]**\n\n{content}"
+    except Exception as e:
+        return f"Warning: [Retrieval Error] Falling back to Internal Logic: {e}\n\n{get_emergency_wisdom(query)}"
+
 # --- SUB-AGENTS ---
 
 task_agent = Agent(
@@ -151,16 +184,16 @@ def get_resilient_mcp_toolset():
                 if res.status_code == 200:
                     selected_url = primary_url
                 else:
-                    print(f"⚠️ Primary MCP offline ({res.status_code}). Using fallback.")
+                    print(f"Warning: Primary MCP offline ({res.status_code}). Using fallback.")
         except Exception:
-            print(f"⚠️ Primary MCP unreachable. Using fallback.")
+            print("Warning: Primary MCP unreachable. Using fallback.")
     
-    print(f"✅ MCP URL: {selected_url}")
+    print(f"MCP URL: {selected_url}")
     try:
         params = StreamableHTTPConnectionParams(url=selected_url)
         return MCPToolset(connection_params=params)
     except Exception as e:
-        print(f"⚠️ MCPToolset init failed: {e}")
+        print(f"Warning: MCPToolset init failed: {e}")
         return None
 
 def check_uptime_monitors() -> str:
@@ -233,12 +266,14 @@ schedule_agent = Agent(
 career_agent = Agent(
     name="career_agent",
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
-    description="Specialist for career guidance, resume feedback, and skill suggestions.",
+    description="Specialist for career guidance, resume feedback, and skill suggestions based on verified project data.",
     instruction=(
-        "You are the Career Strategist of Assistant AI. You provide highly personalized, insightful career guidance and resume feedback. "
-        "When a user provides a resume or CV (as text or file), carefully analyze the actual content and provide detailed, actionable critiques. "
-        "Provide structured roadmaps, suggest personalized portfolio projects, and identify specific skill gaps based strictly on the user's actual data and current market trends."
-    )
+        "You are the Career Strategist of Assistant AI. You provide highly personalized, insightful career guidance. "
+        "PRIORITIZE using verified project documentation via query_knowledge_base for any questions about Hack2Skill, "
+        "Google Skill Labs, Codelabs, or project timelines. If no grounded data is found or available, "
+        "provide detailed, actionable critiques based on your professional logic."
+    ),
+    tools=[query_knowledge_base]
 )
 
 uptime_agent = Agent(
@@ -258,12 +293,13 @@ uptime_agent = Agent(
 assistant_root = Agent(
     name="assistant_root",
     model=os.environ.get("MODEL", "gemini-1.5-flash"),
-    description="Personal AI Assistant orchestrator for tasks, schedules, and information.",
+    description="Personal AI Assistant orchestrator with Grounded Knowledge Retrieval.",
     sub_agents=[task_agent, info_agent, schedule_agent, career_agent, uptime_agent],
     instruction="""
 You are the **Assistant AI Orchestrator**. Your role is to coordinate specialized sub-agents while maintaining 100% UNBIASED and NEUTRAL status. 
 
 ### 🌟 Core Capabilities:
+- **Grounded Verification Layer**: You have access to a verified project knowledge base via **career_agent**. Route any queries about competition rules, lab differences, or project roadmaps through this layer.
 - **Cognitive Memory Layer**: You have a rolling 5-message context. Always reference previous conversation details when relevant.
 - **Multimodal Neural Mapping**: You can analyze PDFs, Videos, and Images natively. For media queries, synthesize insights from file metadata and visual content.
 - **Task Management**: Route task-specific queries to **task_agent**.

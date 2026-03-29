@@ -8,3 +8,5 @@ python-dotenv
 httpx
 mcp[cli]
 python-multipart
+pinecone
+pinecone-plugin-assistant
