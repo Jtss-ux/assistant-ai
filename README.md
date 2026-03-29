@@ -59,7 +59,17 @@ graph TD
 *   **Fast-Route Intelligence:** Groq (LLaMA 3.3 70B) — *Heavily optimized via max_tokens limits.*
 *   **Deep Cloud Failsafes:** OpenAI, Together AI
 *   **Web Search Context:** Tavily Search API
-*   **Database:** Local SQLite (Pinecone stubbed)
+*   **Database:** Local SQLite + Pinecone Assistant (Grounded RAG)
+*   **Knowledge Base:** Pinecone Vector Memory (10 indexed project documents)
+
+---
+
+## 🌐 Live Deployments
+
+| Platform | URL |
+|:---|:---|
+| **Render** | [https://assistant-ai-uqu4.onrender.com](https://assistant-ai-uqu4.onrender.com) |
+| **Hugging Face** | [https://jtsvize-career-ai.hf.space](https://jtsvize-career-ai.hf.space) |
 
 ---
 
