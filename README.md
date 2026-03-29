@@ -1,3 +1,11 @@
+---
+title: Career AI
+emoji: 🚀
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
 <div align="center">
   <h1>✨ Career AI</h1>
   <p><strong>Gen AI Academy APAC Edition — Track 1: Build and Deploy AI Agents</strong></p>
