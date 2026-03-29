@@ -9,6 +9,8 @@ ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH \
     PYTHONUNBUFFERED=1
 
+# Create workdir and give ownership to the non-root user BEFORE switching
+RUN mkdir -p $HOME/app && chown -R user:user $HOME
 WORKDIR $HOME/app
 
 # Install system dependencies

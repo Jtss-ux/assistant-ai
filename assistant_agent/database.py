@@ -4,7 +4,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 # --- CONFIGURATION ---
-DB_PATH = os.environ.get("DATABASE_PATH", "assistant.db")
+DB_PATH = os.environ.get("DATABASE_PATH", "/tmp/assistant.db")
 
 class Task(BaseModel):
     id: Optional[int] = None
