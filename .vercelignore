@@ -1,10 +1,10 @@
 # Exclude heavy or unnecessary folders from Vercel bundle
-mobile/
-career_agent/
-jtspine/
-zoo_guide_agent/
-mcp-on-cloudrun/
-render_cli_final_tmp/
+/mobile/
+/career_agent/
+/jtspine/
+/zoo_guide_agent/
+/mcp-on-cloudrun/
+/render_cli_final_tmp/
 dist/
 node_modules/
 .venv/
@@ -16,5 +16,5 @@ push_logs.txt
 CLOUD_SHELL_RUNBOOK.sh
 Dockerfile
 README.md
-requirements.txt
+/requirements.txt
 # Only keep api/requirements.txt
