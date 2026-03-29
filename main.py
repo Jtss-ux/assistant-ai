@@ -54,8 +54,12 @@ PLATFORM = detect_platform()
 print(f"{PLATFORM['icon']} Runtime Platform: {PLATFORM['name']}")
 
 # --- SETUP PORT & MCP ENVIRONMENT ---
-default_port = 7860 if "SPACE_ID" in os.environ else 10000
-port = int(os.environ.get("PORT", default_port))
+# HF Spaces injects PORT=8080 internally, but its reverse proxy always
+# health-checks port 7860. We must hardcode 7860 on HF to avoid crash loops.
+if "SPACE_ID" in os.environ:
+    port = 7860
+else:
+    port = int(os.environ.get("PORT", 10000))
 if not os.environ.get("MCP_SERVER_URL"):
     os.environ["MCP_SERVER_URL"] = f"http://localhost:{port}/mcp/sse"
 
