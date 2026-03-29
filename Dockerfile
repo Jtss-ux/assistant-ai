@@ -1,7 +1,15 @@
 # Use official Python slim base image
 FROM python:3.11-slim
 
-WORKDIR /app
+# Create a non-root user (Hugging Face specifically requires UID 1000)
+RUN useradd -m -u 1000 user
+
+# Set environment variables
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH \
+    PYTHONUNBUFFERED=1
+
+WORKDIR $HOME/app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -12,12 +20,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source (includes pre-built frontend/dist)
-COPY . .
+# Copy application source and change ownership to 'user' so SQLite DB can be written
+COPY --chown=user:user . .
 
-# Render injects PORT at runtime (defaults to 10000); do NOT hardcode it here.
+# Switch to the non-root user to avoid permission crashes on Serverless platforms
+USER user
+
+# Platform Port Configurations (Render defaults to 10000, HF defaults to 7860)
 EXPOSE 10000
-ENV PYTHONUNBUFFERED=1
+EXPOSE 7860
 
-# Start the FastAPI server
+# Start the unified backend
 CMD ["python", "main.py"]
