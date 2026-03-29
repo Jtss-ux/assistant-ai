@@ -23,7 +23,8 @@ from assistant_agent.deterministic_agent import run_deterministic_query
 init_db()
 
 # --- SETUP MCP ENVIRONMENT ---
-port = int(os.environ.get("PORT", 10000))
+default_port = 7860 if "SPACE_ID" in os.environ else 10000
+port = int(os.environ.get("PORT", default_port))
 if not os.environ.get("MCP_SERVER_URL"):
     os.environ["MCP_SERVER_URL"] = f"http://localhost:{port}/mcp/sse"
 
@@ -203,7 +204,8 @@ async def query_agent(request: Request):
         parts = [genai_types.Part(text=text)]
         
         if is_multimodal:
-            temp_path = f"tmp_{file.filename}"
+            import tempfile
+            temp_path = os.path.join(tempfile.gettempdir(), f"tmp_{file.filename}")
             with open(temp_path, "wb") as buffer:
                 buffer.write(await file.read())
             
