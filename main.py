@@ -1,5 +1,10 @@
 import os
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from starlette.applications import Starlette
 from starlette.routing import Route, Mount
 from starlette.requests import Request
@@ -10,8 +15,6 @@ from starlette.staticfiles import StaticFiles
 import json
 import httpx
 import time
-
-load_dotenv()
 
 # --- IMPORT ASSISTANT AGENT ---
 from assistant_agent import assistant_root, init_db
@@ -199,12 +202,14 @@ async def call_gemini_api(text, history, enriched_prompt):
     base_model = os.environ.get("MODEL", "gemini-1.5-flash")
     secondary_model = "gemini-1.5-pro" if "flash" in base_model else "gemini-1.5-flash"
     
-    import google.generativeai as genai
-    genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-    model = genai.GenerativeModel(f"models/{secondary_model}")
+    from google import genai
+    client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
     
     history_genai = [{"role": "model" if m['role'] == "bot" else "user", "parts": [m['content']]} for m in history]
-    res = await model.generate_content_async([*history_genai, {"role": "user", "parts": [enriched_prompt]}])
+    res = await client.models.generate_content_async(
+        model=f"models/{secondary_model}",
+        contents=[*history_genai, {"role": "user", "parts": [enriched_prompt]}]
+    )
     
     tokens = res.usage_metadata.total_token_count if hasattr(res, 'usage_metadata') else len(res.text) // 4
     return res.text, tokens, "Gemini 1.5 Pro (Core Engine)"
@@ -258,9 +263,9 @@ async def query_agent(request: Request):
         is_multimodal = bool(file and hasattr(file, 'filename') and file.filename)
         
         from google.adk.runners import InMemoryRunner
+        from google import genai
         from google.genai import types as genai_types
-        import google.generativeai as raw_genai
-
+        client = genai.Client(api_key=os.environ.get("GOOGLE_API_KEY"))
         parts = [genai_types.Part(text=text)]
         
         if is_multimodal:
@@ -269,8 +274,8 @@ async def query_agent(request: Request):
             with open(temp_path, "wb") as buffer:
                 buffer.write(await file.read())
             
-            raw_genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-            uploaded_file = raw_genai.upload_file(temp_path)
+            # Use google-genai for upload
+            uploaded_file = client.files.upload(path=temp_path)
             parts.append(genai_types.Part(file_data=genai_types.FileData(file_uri=uploaded_file.uri, mime_type=file.content_type)))
             os.remove(temp_path)
 
