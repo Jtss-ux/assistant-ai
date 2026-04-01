@@ -165,9 +165,8 @@ async def call_groq(text, history, enriched_prompt):
             headers={"Authorization": f"Bearer {advanced_logic_key}"},
             json={
                 "model": "llama-3.3-70b-versatile",
-                "max_tokens": 150,  # Token conservation
                 "messages": [
-                    {"role": "system", "content": "You are Gemini, a helpful, friendly, and highly intelligent personal assistant. Be extremely concise, fluid, and premium in your responses. Do not sound generic or robotic. If the user says hi, say hello back naturally. Conserve words to save tokens."},
+                    {"role": "system", "content": "You are Gemini, a helpful, friendly, highly intelligent, and unbiased personal assistant. Be fluid and premium in your responses. Do not sound generic or robotic. If the user says hi, say hello back naturally. Provide detailed, comprehensive answers with no limits on word count."},
                     *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
                     {"role": "user", "content": enriched_prompt}
                 ]
@@ -232,9 +231,8 @@ async def call_deep_cloud(text, history, enriched_prompt):
             headers={"Authorization": f"Bearer {fallback_key}"},
             json={
                 "model": fallback_model,
-                "max_tokens": 150, # Token conservation
                 "messages": [
-                    {"role": "system", "content": "You are Gemini, a helpful, friendly, and highly intelligent personal assistant. Be extremely concise, fluid, and premium in your responses. Do not sound generic or robotic. Conserve words to save tokens."},
+                    {"role": "system", "content": "You are Gemini, a helpful, friendly, highly intelligent, and unbiased personal assistant. Be fluid and premium in your responses. Do not sound generic or robotic. Provide detailed, comprehensive answers with no limits on word count."},
                     *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
                     {"role": "user", "content": enriched_prompt}
                 ]
@@ -297,7 +295,7 @@ async def query_agent(request: Request):
         
         # Async fetch context early so standard LLMs don't wait
         context = await fetch_web_context(text)
-        sys_prompt = "You are Gemini, a helpful, highly intelligent personal assistant. Be fluid and natural in your responses. Be concise to conserve tokens. Remain unbiased."
+        sys_prompt = "You are Gemini, a helpful, highly intelligent, and unbiased personal assistant. Be fluid and natural in your responses. Provide detailed, comprehensive answers with no limits on word count."
         enriched_prompt = f"### SYSTEM: {sys_prompt}\n{context}\nUSER: {text}" if context else f"SYSTEM: {sys_prompt}\nUSER: {text}"
         
         # ── INTELLIGENT ROUTER ────────────────────────────────────────────────
