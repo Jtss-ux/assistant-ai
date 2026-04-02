@@ -538,6 +538,7 @@ const AssistantChat = () => {
               type="file" 
               className="hidden" 
               ref={fileInputRef} 
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.sql,.txt,.mp4,.mov,.avi"
               onChange={(e) => setSelectedFile(e.target.files[0])}
             />
             <button 

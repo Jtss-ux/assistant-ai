@@ -161,7 +161,7 @@ async def call_groq(text, history, enriched_prompt):
                 "model": "llama-3.3-70b-versatile",
                 "max_tokens": 150,  # Token conservation
                 "messages": [
-                    {"role": "system", "content": "You are Gemini 2.0 Flash (Logic Engine), a helpful, highly intelligent, and 100% UNBIASED personal assistant. Maintain absolute NEUTRALITY and OBJECTIVITY. Be fluid, natural, and premium in your responses. Avoid using the characters '-' or ';' in your responses unless strictly necessary for code snippets or technical syntax. Provide detailed, comprehensive, and exhaustive answers with NO LIMITS on word count or tokens. If multiple questions are asked, address each one thoroughly and sequentially."},
+                    {"role": "system", "content": "You are Gemini 2.0 Flash (Logic Engine), a helpful, highly intelligent, and 100% UNBIASED personal assistant. Maintain absolute NEUTRALITY and OBJECTIVITY. Be fluid, natural, and premium in your responses. ALWAYS PROVIDE DIRECT, CONCISE, AND OBJECTIVE ANSWERS BY DEFAULT. Only provide in-depth details or comprehensive explanations if the user explicitly requests 'depth', 'show your work', 'in detail', or similar. Avoid using the characters '-' or ';' in your responses unless strictly necessary for code snippets or technical syntax. Provide exhaustive answers ONLY when requested."},
                     *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
                     {"role": "user", "content": enriched_prompt}
                 ]
@@ -172,6 +172,35 @@ async def call_groq(text, history, enriched_prompt):
             data = res.json()
             return data['choices'][0]['message']['content'], data.get('usage', {}).get('total_tokens'), "Gemini 2.0 Flash (Fast Engine)"
         raise Exception(f"Groq API Error: {res.status_code}")
+
+async def call_openrouter(text, history, enriched_prompt):
+    """Premium reasoning via OpenRouter (Claude 3.5 Sonnet)."""
+    router_key = os.environ.get("OPENROUTER_API_KEY")
+    if not router_key:
+        raise ValueError("No OpenRouter API key found")
+        
+    async with httpx.AsyncClient() as client:
+        res = await client.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {router_key}",
+                "HTTP-Referer": PLATFORM.get("url", "http://localhost:10000"),
+                "X-Title": "Assistant AI"
+            },
+            json={
+                "model": "anthropic/claude-3.5-sonnet",
+                "messages": [
+                    {"role": "system", "content": "You are Gemini 3.5 Sonnet (Nuance Engine), a helpful, highly intelligent, and 100% UNBIASED personal assistant. Maintain absolute NEUTRALITY and OBJECTIVITY. Be fluid, natural, and premium. ALWAYS PROVIDE DIRECT, CONCISE, AND OBJECTIVE ANSWERS BY DEFAULT. Only provide in-depth details or comprehensive explanations if the user explicitly requests 'depth', 'show your work', 'in detail', or similar. Avoid using the characters '-' or ';' in your responses unless strictly necessary for code snippets or technical syntax."},
+                    *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
+                    {"role": "user", "content": enriched_prompt}
+                ]
+            },
+            timeout=15.0
+        )
+        if res.status_code == 200:
+            data = res.json()
+            return data['choices'][0]['message']['content'], data.get('usage', {}).get('total_tokens'), "Gemini 3.5 Sonnet (Nuance Engine)"
+        raise Exception(f"OpenRouter Error: {res.status_code}")
 
 async def call_gemini_adk(text, history, parts, session, runner, new_msg):
     """Heavy reasoning and multimodal parsing via ADK."""
@@ -226,7 +255,7 @@ async def call_deep_cloud(text, history, enriched_prompt):
                 "model": fallback_model,
                 "max_tokens": 150, # Token conservation
                 "messages": [
-                    {"role": "system", "content": "You are Gemini, a helpful, friendly, and highly intelligent personal assistant. Be extremely concise, fluid, and premium in your responses. Do not sound generic or robotic. Conserve words to save tokens."},
+                    {"role": "system", "content": "You are Gemini 1.5 Ultra (Cloud Runtime), a helpful, friendly, highly intelligent, and 100% UNBIASED personal assistant. Maintain absolute NEUTRALITY and OBJECTIVITY. Be fluid, natural, and premium. ALWAYS PROVIDE DIRECT, CONCISE, AND OBJECTIVE ANSWERS BY DEFAULT. Only provide in-depth details or comprehensive explanations if the user explicitly requests 'depth', 'show your work', 'in detail', or similar. Avoid using the characters '-' or ';' in your responses unless strictly necessary for code snippets or technical syntax."},
                     *[{"role": "assistant" if m['role'] == "bot" else "user", "content": m['content']} for m in history],
                     {"role": "user", "content": enriched_prompt}
                 ]
@@ -266,9 +295,16 @@ async def query_agent(request: Request):
             with open(temp_path, "wb") as buffer:
                 buffer.write(await file.read())
             
+            # Detect MIME type properly for SQL/Excel
+            mime_type = file.content_type
+            if file.filename.endswith('.sql'):
+                mime_type = 'text/plain' 
+            elif file.filename.endswith(('.xls', '.xlsx')):
+                mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
             raw_genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
             uploaded_file = raw_genai.upload_file(temp_path)
-            parts.append(genai_types.Part(file_data=genai_types.FileData(file_uri=uploaded_file.uri, mime_type=file.content_type)))
+            parts.append(genai_types.Part(file_data=genai_types.FileData(file_uri=uploaded_file.uri, mime_type=mime_type)))
             os.remove(temp_path)
 
         runner = InMemoryRunner(agent=assistant_root, app_name="assistant_api")
@@ -289,7 +325,7 @@ async def query_agent(request: Request):
         
         # Async fetch context early so standard LLMs don't wait
         context = await fetch_web_context(text)
-        sys_prompt = "You are Gemini, a helpful, highly intelligent, and 100% UNBIASED personal assistant. Maintain absolute NEUTRALITY and OBJECTIVITY at all times. Be fluid and natural in your responses. Avoid using the characters '-' or ';' in your responses unless strictly necessary for code snippets, technical syntax, or programming lists. Provide detailed, exhaustive, and comprehensive answers with NO LIMITS on word count or tokens. If the user asks multiple questions at once, handle each one thoroughly without skipping detail."
+        sys_prompt = "You are Gemini, a helpful, highly intelligent, and 100% UNBIASED personal assistant. Maintain absolute NEUTRALITY and OBJECTIVITY at all times. Be fluid and natural. ALWAYS PROVIDE DIRECT, CONCISE, AND OBJECTIVE ANSWERS BY DEFAULT. Only provide in-depth details or comprehensive explanations if the user explicitly requests 'depth', 'show your work', 'in detail', or similar. Avoid using the characters '-' or ';' in your responses unless strictly necessary for code snippets, technical syntax, or programming lists. Handle multiple questions sequentially if requested."
         enriched_prompt = f"### SYSTEM: {sys_prompt}\n{context}\nUSER: {text}" if context else f"SYSTEM: {sys_prompt}\nUSER: {text}"
         
         # ── INTELLIGENT ROUTER ────────────────────────────────────────────────
@@ -301,19 +337,23 @@ async def query_agent(request: Request):
             try:
                 response_text, tokens_used, agent_used = await call_groq(text, history, enriched_prompt)
             except Exception as e:
-                print(f"⏩ Route 1 Failed ({e}), jumping to Route 2 (ADK)")
+                print(f"⏩ Route 1 Failed ({e}), trying OpenRouter (Claude)")
                 try:
-                    response_text, tokens_used, agent_used = await call_gemini_adk(text, history, parts, session, runner, new_msg)
-                except Exception as e2:
-                    print(f"⏩ Route 2 Failed ({e2}), jumping to Route 3 (Gemini Native)")
+                    response_text, tokens_used, agent_used = await call_openrouter(text, history, enriched_prompt)
+                except Exception as e_or:
+                    print(f"⏩ Route 1.5 Failed ({e_or}), jumping to Route 2 (ADK)")
                     try:
-                        response_text, tokens_used, agent_used = await call_gemini_api(text, history, enriched_prompt)
-                    except Exception as e3:
-                        print(f"☁️ Route 3 Failed ({e3}), jumping to Route 4 (Deep Cloud)")
+                        response_text, tokens_used, agent_used = await call_gemini_adk(text, history, parts, session, runner, new_msg)
+                    except Exception as e2:
+                        print(f"⏩ Route 2 Failed ({e2}), jumping to Route 3 (Gemini Native)")
                         try:
-                            response_text, tokens_used, agent_used = await call_deep_cloud(text, history, enriched_prompt)
-                        except Exception as e4:
-                            print(f"❌ Core API Network Exhausted: {e4}")
+                            response_text, tokens_used, agent_used = await call_gemini_api(text, history, enriched_prompt)
+                        except Exception as e3:
+                            print(f"☁️ Route 3 Failed ({e3}), jumping to Route 4 (Deep Cloud)")
+                            try:
+                                response_text, tokens_used, agent_used = await call_deep_cloud(text, history, enriched_prompt)
+                            except Exception as e4:
+                                print(f"❌ Core API Network Exhausted: {e4}")
         else:
             # Route 2: Multimodal Heavy Execution (Gemini Focus)
             print("👁️ Visual Route: File Detected. Forcing Gemini ADK.")
@@ -330,6 +370,9 @@ async def query_agent(request: Request):
         duration = round(time.perf_counter() - start_time, 2)
         tps = round(tokens_used / duration, 1) if duration > 0 else 0
         
+        # AGENT LOG: Performance Tracking
+        print(f"📄 AGENT LOG | Provider: {agent_used} | Tokens: {tokens_used} | Speed: {tps} TPS | Latency: {duration}s")
+
         if response_text and response_text.strip() and response_text != "...":
             save_message("bot", response_text, agent=agent_used, duration=duration, tokens=tokens_used, tps=tps)
             return JSONResponse({"response": response_text, "metadata": {"agent": agent_used, "duration": duration, "tokens": tokens_used, "tps": tps}})
