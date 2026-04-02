@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistant AI – Multi-Agent Personal & Career Platform | Gen AI Academy APAC Track 1</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --b:#1a73e8; --bd:#0d47a1; --g:#34a853; --y:#fbbc04;
+    --r:#ea4335; --p:#7b1fa2; --t:#00897b;
+    --g1:#f8f9fa; --g2:#e8eaed; --g5:#9aa0a6; --g7:#5f6368; --g9:#202124;
+  }
+  body { font-family:'Google Sans',sans-serif; background:#e0e3e8; padding:40px 0 80px; }
+  .slide { width:1280px; min-height:720px; position:relative; overflow:hidden; margin:0 auto 48px; box-shadow:0 12px 48px rgba(0,0,0,.2); border-radius:6px; }
+  .sh { background:linear-gradient(90deg,var(--bd),var(--b)); padding:26px 60px; display:flex; align-items:center; justify-content:space-between; }
+  .sh h2 { color:#fff; font-size:24px; font-weight:600; }
+  .sn { color:rgba(255,255,255,.6); font-size:13px; background:rgba(255,255,255,.12); padding:4px 14px; border-radius:12px; }
+
+  /* — SLIDE 1 — */
+  .s1 { background:linear-gradient(135deg,#0a2d72 0%,#1557b0 45%,#0d47a1 100%); display:flex; flex-direction:column; justify-content:center; padding:72px 100px; }
+  .deco { position:absolute; border-radius:50%; pointer-events:none; }
+  .d1{width:560px;height:560px;right:-140px;bottom:-180px;background:rgba(255,255,255,.03);}
+  .d2{width:300px;height:300px;right:180px;bottom:40px;background:rgba(255,255,255,.04);}
+  .d3{width:150px;height:150px;right:360px;bottom:270px;background:rgba(255,255,255,.05);}
+  .gbadge { position:absolute; top:36px; right:56px; display:flex; align-items:center; gap:8px; }
+  .gbadge span { color:rgba(255,255,255,.9); font-size:14px; font-weight:600; }
+  .gdot { width:8px; height:8px; border-radius:50%; background:var(--g); box-shadow:0 0 8px var(--g); }
+  .ttag { display:inline-block; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.3); color:#c5cae9; font-size:11px; font-weight:500; letter-spacing:2px; text-transform:uppercase; padding:6px 18px; border-radius:20px; margin-bottom:24px; }
+  .s1 h1 { color:#fff; font-size:58px; font-weight:700; line-height:1.1; }
+  .s1 h1 em { font-style:normal; background:linear-gradient(90deg,#fdd835,#ff8f00); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .s1 .tag2 { color:rgba(255,255,255,.5); font-size:13px; font-weight:500; letter-spacing:2px; text-transform:uppercase; margin:8px 0 18px; }
+  .s1 .sub { color:rgba(255,255,255,.78); font-size:16.5px; font-weight:300; line-height:1.7; max-width:740px; margin-bottom:36px; }
+  .pills { display:flex; gap:9px; flex-wrap:wrap; }
+  .pill { background:rgba(255,255,255,.11); border:1px solid rgba(255,255,255,.26); color:#fff; padding:7px 16px; border-radius:24px; font-size:12.5px; font-weight:500; }
+  .auth { position:absolute; bottom:32px; left:100px; color:rgba(255,255,255,.5); font-size:12.5px; }
+  .auth strong { color:rgba(255,255,255,.82); }
+  .s1badge { position:absolute; bottom:32px; right:56px; background:rgba(255,255,255,.1); border:1.5px solid rgba(255,255,255,.2); border-radius:12px; padding:10px 20px; display:flex; align-items:center; gap:12px; }
+  .s1bv { font-size:26px; font-weight:700; color:#fdd835; line-height:1; }
+  .s1bl { font-size:11px; color:rgba(255,255,255,.65); line-height:1.4; }
+
+  /* — SLIDE 2 — */
+  .s2 { background:#fff; display:grid; grid-template-rows:auto 1fr; }
+  .b2 { display:grid; grid-template-columns:1fr 1fr; padding:28px 60px; }
+  .col-l { padding-right:40px; border-right:2px solid var(--g2); }
+  .col-r { padding-left:40px; }
+  .ct { font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--g5); margin-bottom:12px; }
+  .ps-box { border-left:4px solid var(--y); background:#fff8e1; border-radius:0 10px 10px 0; padding:14px 16px; margin-bottom:14px; }
+  .ps-box .pst { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#e37400; margin-bottom:5px; }
+  .ps-box p { font-size:12.5px; color:#5f3e00; line-height:1.65; }
+  .idea-box { background:#e8f0fe; border-left:4px solid var(--b); border-radius:0 10px 10px 0; padding:14px 16px; margin-bottom:14px; }
+  .idea-box .it { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--b); margin-bottom:5px; }
+  .idea-box p { font-size:12.5px; color:#0d47a1; line-height:1.65; }
+  .feat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+  .fitem { background:var(--g1); border:1px solid var(--g2); border-radius:8px; padding:10px 12px; display:flex; gap:8px; align-items:flex-start; }
+  .finum { width:20px; height:20px; border-radius:50%; background:var(--b); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .fitem h4 { font-size:11.5px; font-weight:600; color:var(--g9); margin-bottom:1px; }
+  .fitem p  { font-size:10.5px; color:var(--g7); line-height:1.35; }
+  .usp-box { background:linear-gradient(135deg,#e8f0fe,#f3e5f5); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  .usp-box .ut { font-size:11px; font-weight:600; color:var(--b); margin-bottom:8px; }
+  .ul { display:flex; flex-direction:column; gap:5px; }
+  .uli { font-size:11.5px; color:var(--g7); display:flex; gap:7px; align-items:flex-start; line-height:1.4; }
+  .uli::before { content:"★"; color:var(--y); font-size:11px; flex-shrink:0; }
+  .scope { background:#e6f4ea; border:1px solid #a8d5b0; border-radius:8px; padding:12px 14px; }
+  .scope .st { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--g); margin-bottom:5px; }
+  .scope p { font-size:11.5px; color:#1b5e20; line-height:1.5; }
+
+  /* — SLIDE 3 (ARCHITECTURE) — */
+  .s3 { background:var(--g1); display:grid; grid-template-rows:auto 1fr; }
+  .b3 { display:grid; grid-template-columns:1.2fr 1fr; padding:26px 60px; }
+  .arch { padding-right:40px; border-right:2px solid var(--g2); }
+  .arch h3, .tech h3 { font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--g5); margin-bottom:14px; }
+
+  .maf { display:flex; flex-direction:column; align-items:center; gap:0; }
+  .mabox { border-radius:12px; padding:12px 24px; font-size:13px; font-weight:600; text-align:center; box-shadow:0 3px 10px rgba(0,0,0,.08); min-width:220px; }
+  .mabox small { display:block; font-size:10.5px; font-weight:400; opacity:.7; margin-top:3px; }
+  .ma-blue   { background:#e8f0fe; color:var(--b);  border:2px solid #c5d9f7; }
+  .ma-orch   { background:#fff8e1; color:#c17500;    border:2px solid #f9d770; }
+  .ma-sub    { background:#f3e5f5; color:var(--p);   border:2px solid #ce93d8; }
+  .ma-green  { background:#e6f4ea; color:var(--g);   border:2px solid #a8d5b0; }
+  .ma-teal   { background:#e0f7fa; color:var(--t);   border:2px solid #80cbc4; }
+  .ma-red    { background:#fce8e6; color:var(--r);   border:2px solid #f5c6c3; }
+  .ma-out    { background:#1a73e8; color:#fff;        border:none; }
+  .arr-d { color:var(--g5); font-size:18px; font-weight:700; margin:2px 0; }
+  .sub-row { display:flex; gap:10px; margin:4px 0; }
+  .sub-box { border-radius:10px; padding:10px 14px; font-size:11px; font-weight:600; text-align:center; flex:1; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+  .sub-box small { display:block; font-size:9.5px; font-weight:400; opacity:.65; margin-top:2px; }
+  .tool-row { display:flex; gap:6px; margin:3px 0; }
+  .tool-chip { border-radius:6px; padding:5px 10px; font-size:10px; font-weight:600; flex:1; text-align:center; }
+  .tc-g { background:#e6f4ea; color:var(--g); border:1px solid #a8d5b0; }
+  .tc-b { background:#e8f0fe; color:var(--b); border:1px solid #c5d9f7; }
+  .tc-r { background:#fce8e6; color:var(--r); border:1px solid #f5c6c3; }
+  .tc-p { background:#f3e5f5; color:var(--p); border:1px solid #ce93d8; }
+
+  .tech { padding-left:40px; }
+  .tgrid { display:flex; flex-direction:column; gap:10px; }
+  .trow  { display:flex; gap:10px; }
+  .tc-card { background:#fff; border-radius:10px; padding:12px 14px; box-shadow:0 2px 8px rgba(0,0,0,.06); border:1px solid var(--g2); flex:1; }
+  .tci { font-size:19px; margin-bottom:5px; }
+  .tcn { font-size:12px; font-weight:600; color:var(--g9); }
+  .tcd { font-size:10.5px; color:var(--g7); margin-top:2px; line-height:1.35; }
+
+  /* — SLIDE 4 (SYSTEM DESIGN + CODE) — */
+  .s4 { background:#fff; display:grid; grid-template-rows:auto 1fr; }
+  .b4 { display:grid; grid-template-columns:1fr 1fr; padding:26px 60px; }
+  .sd-left { padding-right:40px; border-right:2px solid var(--g2); }
+  .cd-right { padding-left:40px; }
+  .sd-left h3, .cd-right h3 { font-size:11px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--g5); margin-bottom:14px; }
+  .sd-box { background:linear-gradient(135deg,#e8f0fe,#f3e5f5); border-radius:12px; padding:16px 18px; margin-bottom:14px; }
+  .sd-box .sdt { font-size:12px; font-weight:600; color:var(--b); margin-bottom:10px; }
+  .sd-box p  { font-size:12px; color:var(--bd); line-height:1.65; margin-bottom:10px; }
+  .agent-chips { display:flex; flex-direction:column; gap:7px; }
+  .ach { display:flex; gap:10px; align-items:center; background:#fff; border-radius:8px; padding:9px 12px; border:1px solid var(--g2); box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .ach .ac-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .ac-blue{background:var(--b);} .ac-green{background:var(--g);} .ac-red{background:var(--r);} .ac-orch{background:var(--y);}
+  .ach .ac-t { font-size:12px; font-weight:600; color:var(--g9); flex:1; }
+  .ach .ac-d { font-size:11px; color:var(--g7); }
+  .impact-box { background:#e6f4ea; border:1px solid #a8d5b0; border-radius:10px; padding:14px 16px; }
+  .impact-box .ibt { font-size:11px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--g); margin-bottom:8px; }
+  .impact-box p  { font-size:12px; color:#1b5e20; line-height:1.55; margin-bottom:8px; }
+  .impact-list { display:flex; flex-direction:column; gap:4px; }
+  .imp-i { font-size:11.5px; color:#1b5e20; display:flex; gap:7px; align-items:flex-start; }
+  .imp-i::before { content:"→"; font-weight:700; flex-shrink:0; }
+
+  .code-block { background:#1e2a3a; border-radius:10px; padding:14px 16px; font-family:'Roboto Mono',monospace; font-size:10.5px; line-height:1.75; color:#e8eaed; margin-bottom:12px; }
+  .cbt { font-family:'Google Sans',sans-serif; font-size:9.5px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#7986cb; margin-bottom:10px; }
+  .kw{color:#82aaff;} .fn{color:#82cfdd;} .st{color:#c3e88d;} .cm{color:#546e7a;font-style:italic;} .cl{color:#ffcb6b;} .nu{color:#f78c6c;}
+  .dcmd { background:#263238; border-radius:8px; padding:10px 14px; font-family:'Roboto Mono',monospace; font-size:10.5px; line-height:1.7; color:#a5d6a7; }
+  .dct { font-family:'Google Sans',sans-serif; font-size:9.5px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#7986cb; margin-bottom:6px; }
+
+  /* — SLIDE 5 (OUTCOMES) — */
+  .s5 { background:var(--g1); display:grid; grid-template-rows:auto auto 1fr auto; }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:22px 60px 14px; }
+  .mc { background:#fff; border-radius:14px; padding:18px 14px; box-shadow:0 2px 10px rgba(0,0,0,.06); display:flex; flex-direction:column; align-items:center; text-align:center; border-top:4px solid; }
+  .mc-b{border-color:var(--b);} .mc-g{border-color:var(--g);} .mc-y{border-color:var(--y);} .mc-p{border-color:var(--p);}
+  .mi { font-size:24px; margin-bottom:6px; }
+  .mv { font-size:36px; font-weight:700; line-height:1; margin-bottom:3px; }
+  .mc-b .mv{color:var(--b);} .mc-g .mv{color:var(--g);} .mc-y .mv{color:#e37400;} .mc-p .mv{color:var(--p);}
+  .ml { font-size:12px; color:var(--g7); font-weight:500; margin-bottom:4px; }
+  .md { font-size:10px; color:var(--g5); line-height:1.4; }
+  .url-bar { margin:0 60px 14px; background:linear-gradient(90deg,var(--bd),var(--b)); border-radius:12px; padding:13px 24px; display:flex; align-items:center; gap:12px; }
+  .ubi { font-size:20px; }
+  .ubl { color:rgba(255,255,255,.7); font-size:10.5px; margin-bottom:3px; font-weight:500; }
+  .ubu { color:#fff; font-family:'Roboto Mono',monospace; font-size:12px; font-weight:500; }
+  .ogrid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; padding:0 60px 22px; }
+  .oc { background:#fff; border-radius:12px; padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,.05); border:1px solid var(--g2); }
+  .oc h4 { font-size:12px; font-weight:600; color:var(--g9); margin-bottom:8px; }
+  .oc ul { list-style:none; display:flex; flex-direction:column; gap:5px; }
+  .oc li { font-size:11px; color:var(--g7); display:flex; gap:7px; align-items:flex-start; line-height:1.4; }
+  .oc li::before { content:"✓"; color:var(--g); font-weight:700; flex-shrink:0; }
+  .closing { margin:0 60px 18px; background:linear-gradient(90deg,#1b5e20,#2e7d32); border-radius:10px; padding:12px 22px; color:#fff; font-size:13px; font-weight:400; line-height:1.55; font-style:italic; }
+
+  @media print { body{background:#fff;padding:0;} .slide{margin:0;box-shadow:none;border-radius:0;page-break-after:always;} }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1 — TITLE -->
+<div class="slide s1">
+  <div class="deco d1"></div><div class="deco d2"></div><div class="deco d3"></div>
+  <div class="gbadge"><div class="gdot"></div><span>Google Cloud · Gen AI Academy APAC · Cohort 1</span></div>
+  <div class="ttag">Track 1 &nbsp;·&nbsp; Build and Deploy AI Agents &nbsp;·&nbsp; Jan – Apr 2026</div>
+  <h1>🧭 Assistant <em>AI</em></h1>
+  <div class="tag2">Unified Multi-Agent Personal & Career Platform</div>
+  <p class="sub">
+    A <strong style="color:#fff">production-ready multi-agent AI system</strong> built with <strong style="color:#fff">Google ADK</strong> — seamlessly orchestrating personal tasks, real-time schedules via <strong style="color:#fff">FastMCP</strong>, and integrated <strong style="color:#fff">CareerPilot</strong> guidance, all backed by <strong style="color:#fff">SQLite persistence</strong>.
+  </p>
+  <div class="pills">
+    <div class="pill">🤖 Google ADK v1.x</div>
+    <div class="pill">✨ Gemini · Vertex AI</div>
+    <div class="pill">🏗️ Multi-Agent Orchestration</div>
+    <div class="pill">☁️ Google Cloud Run / Render</div>
+    <div class="pill">🔧 FastMCP & SQLite</div>
+  </div>
+  <div class="auth"><strong>Joseph Thomas Stalin</strong> &nbsp;·&nbsp; josephst2007@gmail.com &nbsp;·&nbsp; Gen AI Academy APAC Track 1</div>
+  <div class="s1badge">
+    <div class="s1bv">3</div>
+    <div class="s1bl">Specialist<br>Sub-Agents</div>
+  </div>
+</div>
+
+<!-- SLIDE 2 — PROBLEM, IDEA, USP, FUTURE SCOPE -->
+<div class="slide s2">
+  <div class="sh"><h2>Problem Statement, Idea &amp; USP</h2><span class="sn">02 / 05</span></div>
+  <div class="b2">
+    <div class="col-l">
+      <div class="ct">Problem Statement</div>
+      <div class="ps-box">
+        <div class="pst">🔴 The Problem</div>
+        <p>Professionals face "Context Switching" fatigue between task managers, calendars, and career advice platforms. Scattered data leads to missed opportunities and poor planning.</p>
+      </div>
+      <div class="ps-box" style="background:#fce8e6; border-left-color:#ea4335;">
+        <div class="pst" style="color:#c5221f;">🎯 The Challenge</div>
+        <p style="color:#4a1010;">Build a unified intelligent AI agent that orchestrates personal productivity and professional guidance through a single, resilient interface.</p>
+      </div>
+      <div class="ct" style="margin-top:14px;">Features</div>
+      <div class="feat-grid">
+        <div class="fitem"><div class="finum">1</div><div><h4>Unified Task Engine</h4><p>SQLite-backed task tracking & lists</p></div></div>
+        <div class="fitem"><div class="finum">2</div><div><h4>FastMCP Scheduling</h4><p>Real-time calendar & system tool access</p></div></div>
+        <div class="fitem"><div class="finum">3</div><div><h4>Career Strategy</h4><p>Resume tips, Skills, & Project roadmaps</p></div></div>
+        <div class="fitem"><div class="finum">4</div><div><h4>Emergency Mode</h4><p>Deterministic local fallback AI for 429s</p></div></div>
+        <div class="fitem"><div class="finum">5</div><div><h4>Premium Web UI</h4><p>Modern glassmorphism visual interface</p></div></div>
+        <div class="fitem"><div class="finum">6</div><div><h4>Security Ready</h4><p>Render Outbound IP Whitelisting enabled</p></div></div>
+      </div>
+    </div>
+    <div class="col-r">
+      <div class="ct">Brief About the Idea</div>
+      <div class="idea-box">
+        <div class="it">💡 Assistant AI</div>
+        <p>A multi-agent personal productivity powerhouse. Leveraging Google ADK, it creates a "Master Orchestrator" that manages specialized agents for Tasks, Schedules, and Career Growth. Deployed as a single containerized service on Cloud Run/Render for high availability and elastic scale.</p>
+      </div>
+      <div class="ct">Security & Networking</div>
+      <div class="usp-box">
+        <div class="ut">🛡️ Production Whitelisting (Render)</div>
+        <div class="ul">
+          <div class="uli">Designed for secure DB connectivity via specific IP ranges</div>
+          <div class="uli">Range A: <strong>74.220.52.0/24</strong></div>
+          <div class="uli">Range B: <strong>74.220.60.0/24</strong></div>
+          <div class="uli">Enables secure VPC-like peering for external databases</div>
+        </div>
+      </div>
+      <div class="scope">
+        <div class="st">🚀 Future Scope</div>
+        <p>Native integration with Google Workspaces via MCP and persistent vector memory for long-term user context across all specialized sub-agents.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3 — ARCHITECTURE -->
+<div class="slide s3">
+  <div class="sh"><h2>Multi-Agent Architecture &amp; Tech Stack</h2><span class="sn">03 / 05</span></div>
+  <div class="b3">
+    <div class="arch">
+      <h3>Agent Orchestration Flow</h3>
+      <div class="maf">
+        <div class="mabox ma-blue">👤 User Query<small>Natural Language Input</small></div>
+        <div class="arr-d">↓</div>
+        <div class="mabox ma-orch">🤖 Orchestrator Agent (ADK)<small>careerpilot_orchestrator · root_agent · intent analysis</small></div>
+        <div class="arr-d">↓ Sub-Agent Routing</div>
+        <div class="sub-row">
+          <div class="sub-box ma-red">💾 Task Agent<small>SQLite-backed task tools</small></div>
+          <div class="sub-box ma-green">📅 Schedule Agent<small>FastMCP Calendar tools</small></div>
+          <div class="sub-box ma-sub">🏅 Career Agent<small>CareerPilot toolsuite</small></div>
+        </div>
+        <div class="arr-d">↓ Tool Execution / Persistent Storage</div>
+        <div class="tool-row">
+          <div class="tool-chip tc-r">add_task / list_tasks</div>
+          <div class="tool-chip tc-g">get_calendar / add_event</div>
+          <div class="tool-chip tc-b">suggest_skills / roadmap</div>
+          <div class="tool-chip tc-p">LLM Fallback (Mock)</div>
+        </div>
+        <div class="arr-d">↓ (Optional) External Data via MCP / APIs</div>
+        <div class="arr-d">↓ Response Aggregation → Structured Output</div>
+        <div class="mabox ma-out">📤 Career Path · Skills · Projects · Resume Tips · Next Steps</div>
+      </div>
+    </div>
+    <div class="tech">
+      <h3>Technologies Used</h3>
+      <div class="tgrid">
+        <div class="trow">
+          <div class="tc-card"><div class="tci">🤖</div><div class="tcn">Google Cloud ADK</div><div class="tcd">root_agent orchestrator, sub_agents, function tools, adk deploy</div></div>
+          <div class="tc-card"><div class="tci">✨</div><div class="tcn">Vertex AI (Gemini)</div><div class="tcd">LLM for intent analysis, tool selection, and response generation</div></div>
+        </div>
+        <div class="trow">
+          <div class="tc-card"><div class="tci">🏗️</div><div class="tcn">Multi-Agent Pattern</div><div class="tcd">Orchestrator + 3 specialist sub-agents via ADK sub_agents parameter</div></div>
+          <div class="tc-card"><div class="tci">☁️</div><div class="tcn">Cloud Run</div><div class="tcd">Serverless deployment — auto-scales, public URL, adk deploy cloud_run --with_ui</div></div>
+        </div>
+        <div class="trow">
+          <div class="tc-card"><div class="tci">🔧</div><div class="tcn">Python (Tool Functions)</div><div class="tcd">4 domain tools — ADK discovers via docstrings; modular and extensible</div></div>
+          <div class="tc-card"><div class="tci">🔌</div><div class="tcn">MCP (Future)</div><div class="tcd">Designed for real-time job market integration via MCP / Google Search APIs</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4 — SYSTEM DESIGN + CODE -->
+<div class="slide s4">
+  <div class="sh"><h2>System Design, Impact &amp; Implementation</h2><span class="sn">04 / 05</span></div>
+  <div class="b4">
+    <div class="sd-left">
+      <h3>System Design</h3>
+      <div class="sd-box">
+        <div class="sdt">🏗️ Modular Multi-Agent Architecture</div>
+        <p>The solution follows a modular multi-agent architecture where a central orchestrator agent delegates tasks to specialized sub-agents. Each sub-agent is responsible for a specific domain, improving scalability, maintainability, and extensibility.</p>
+        <div class="agent-chips">
+          <div class="ach"><div class="ac-dot ac-orch"></div><div class="ac-t">careerpilot_orchestrator</div><div class="ac-d">Intent analysis + routing</div></div>
+          <div class="ach"><div class="ac-dot ac-red"></div><div class="ac-t">resume_agent</div><div class="ac-d">Resume improvement specialist</div></div>
+          <div class="ach"><div class="ac-dot ac-green"></div><div class="ac-t">skill_agent</div><div class="ac-d">Skill gap analysis specialist</div></div>
+          <div class="ach"><div class="ac-dot ac-blue"></div><div class="ac-t">project_agent</div><div class="ac-d">Project &amp; roadmap specialist</div></div>
+        </div>
+      </div>
+      <h3 style="margin-top:14px;">Meeting Build Criteria</h3>
+      <div class="impact-box">
+        <div class="ibt">✅ Track 1 Alignment</div>
+        <p>This project fully aligns with Track 1 — built with Google Cloud ADK, tool-based architecture, Vertex AI (Gemini), and deployed on Cloud Run for real-world scalability.</p>
+        <div class="impact-list">
+          <div class="imp-i">Google Cloud ADK for agent orchestration</div>
+          <div class="imp-i">Multi-tool architecture (skills, projects, resume, roadmap)</div>
+          <div class="imp-i">Gemini via Vertex AI for dynamic query handling</div>
+          <div class="imp-i">Cloud Run — production-ready, scalable deployment</div>
+        </div>
+      </div>
+    </div>
+    <div class="cd-right">
+      <h3>Core Implementation</h3>
+      <div class="code-block">
+        <div class="cbt">📄 career_agent/agent.py — multi-agent pattern</div>
+<span class="kw">from</span> google.adk.agents <span class="kw">import</span> <span class="cl">Agent</span><br><br>
+<span class="cm"># Specialist sub-agents</span><br>
+resume_agent = <span class="cl">Agent</span>(name=<span class="st">"resume_agent"</span>,<br>
+&nbsp;&nbsp;tools=[resume_feedback])<br>
+skill_agent = <span class="cl">Agent</span>(name=<span class="st">"skill_agent"</span>,<br>
+&nbsp;&nbsp;tools=[suggest_skills])<br>
+project_agent = <span class="cl">Agent</span>(name=<span class="st">"project_agent"</span>,<br>
+&nbsp;&nbsp;tools=[suggest_projects, career_path_guide])<br><br>
+<span class="cm"># Orchestrator — must be named root_agent</span><br>
+root_agent = <span class="cl">Agent</span>(<br>
+&nbsp;&nbsp;name=<span class="st">"careerpilot_orchestrator"</span>,<br>
+&nbsp;&nbsp;model=<span class="st">"gemini-1.5-flash"</span>,<br>
+&nbsp;&nbsp;sub_agents=[resume_agent, skill_agent, project_agent],<br>
+&nbsp;&nbsp;instruction=<span class="st">"Route queries → specialist agents"</span><br>
+)
+      </div>
+      <div class="dcmd">
+        <div class="dct">🚀 Deploy to Cloud Run</div>
+        adk deploy cloud_run \<br>
+        &nbsp;&nbsp;--project=YOUR_PROJECT_ID \<br>
+        &nbsp;&nbsp;--region=us-central1 \<br>
+        &nbsp;&nbsp;--service_name=career-agent \<br>
+        &nbsp;&nbsp;--with_ui \<br>
+        &nbsp;&nbsp;.
+      </div>
+      <div class="impact-box" style="margin-top:12px;">
+        <div class="ibt">🌍 Impact</div>
+        <p>CareerPilot AI helps students and professionals make informed career decisions with personalized, actionable insights. Can be integrated into:</p>
+        <div class="impact-list">
+          <div class="imp-i">EdTech platforms &amp; University systems</div>
+          <div class="imp-i">Career portals &amp; Hiring platforms</div>
+          <div class="imp-i">Enables scalable AI-driven mentorship at low cost</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5 — OUTCOMES -->
+<div class="slide s5">
+  <div class="sh"><h2>Outcomes, Deployment &amp; Learnings</h2><span class="sn">05 / 05</span></div>
+  <div class="metrics">
+    <div class="mc mc-b"><div class="mi">🏗️</div><div class="mv">1+3</div><div class="ml">Agent Architecture</div><div class="md">1 Orch + 3 Agents (Task, Sched, Career)</div></div>
+    <div class="mc mc-g"><div class="mi">💾</div><div class="mv">1</div><div class="ml">SQLite DB</div><div class="md">Persistent storage for tasks & notes</div></div>
+    <div class="mc mc-y"><div class="mi">🔌</div><div class="mv">1</div><div class="ml">FastMCP Server</div><div class="md">Real-time calendar & system tools</div></div>
+    <div class="mc mc-p"><div class="mi">🛡️</div><div class="mv">1</div><div class="ml">LLM Fallback</div><div class="md">Mocked logic for 429 Resilience</div></div>
+  </div>
+  <div class="url-bar">
+    <div class="ubi">🌐</div>
+    <div>
+      <div class="ubl">DEPLOYED CAREERPILOT AI — GOOGLE CLOUD RUN SERVICE URL</div>
+      <div class="ubu">https://career-agent-[PROJECT_NUMBER].us-central1.run.app/</div>
+    </div>
+  </div>
+  <div class="ogrid">
+    <div class="oc">
+      <h4>🛠️ Technologies Used</h4>
+      <ul>
+        <li>Google Cloud Agent Development Kit (ADK)</li>
+        <li>Vertex AI — Gemini model</li>
+        <li>Cloud Run — serverless deployment</li>
+        <li>Python — modular tool architecture</li>
+        <li>Cloud Build + Artifact Registry</li>
+        <li>Multi-agent sub_agents ADK pattern</li>
+      </ul>
+    </div>
+    <div class="oc">
+      <h4>✅ Milestones Completed</h4>
+      <ul>
+        <li>Built orchestrator + 3 specialist sub-agents</li>
+        <li>4 domain-specific tool functions</li>
+        <li>Tested locally via adk web interface</li>
+        <li>Deployed to Cloud Run with public UI</li>
+        <li>Verified structured multi-agent responses</li>
+        <li>Production-ready: scalable and extensible</li>
+      </ul>
+    </div>
+    <div class="oc">
+      <h4>💡 Key Learnings</h4>
+      <ul>
+        <li>FastMCP integration for real-time calendar access</li>
+        <li>SQLite persistence for session-aware task tracking</li>
+        <li>Custom LLM Fallback (Mock) for high availability</li>
+        <li>Premium Web UI with modern dark-mode aesthetic</li>
+        <li>Unified orchestration of disparate domains (Life + Career)</li>
+        <li>Future: Multi-user support & cloud-synced databases</li>
+      </ul>
+    </div>
+  </div>
+  <div class="closing">
+    💬 &nbsp;"This project demonstrates how agent-based architectures can be used to build scalable, real-world AI systems — combining Google ADK's multi-agent orchestration with Cloud Run's production infrastructure to deliver personalized, actionable career guidance at scale."
+  </div>
+</div>
+
+</body>
+</html>
